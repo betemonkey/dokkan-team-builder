@@ -19,6 +19,9 @@ const SCENARIOS = [
   { name: 'Mixed classes, no shared category', picks: ['1032311', '1018491', '1030481'] },
   { name: 'Locked leader that misses a pick (SS2 Gohan Youth)', picks: ['1031921', '1032311', '1021671'], opts: { leader: '1030391' }, locked: true },
   { name: 'Top leaders marked "I don\'t have it"', picks: ['1031921', '1032311', '1021671'], opts: { exclude: ['1030481', '1028021', '1030471', '1016871', '1033061'] } },
+  // Reported 2026-11-22: the DAIMA SSJ4 Goku (Mini) came back as leader AND friend. It doesn't stack and no posted
+  // clear used it, while leaders that stack also boost all three picks. lasting: no added unit may fail.
+  { name: 'Gomah + Broly (Wrathful) + Buu (Kid)', picks: ['1032311', '1031921', '1034151'], lasting: true },
 ];
 const MODES = [
   { key: 'none', festival: false, event: '' },
@@ -68,13 +71,36 @@ function check(r, sc, mode) {
       if (!p) fails.push(`${tag}: no clear-data summary`);
       else if (!(p.inClears >= 0 && p.inClears <= p.of && p.of === t.members.length)) fails.push(`${tag}: clear summary says ${p.inClears} of ${p.of}`);
     }
+    // Rule (events): the builder only adds units that last (they stack, or players cleared the event with them).
+    // Any unit that doesn't (your pick, a kept leader, or the only way to boost every pick) is named in a ⚠ note.
+    const all = [...t.members, t.friend].filter(Boolean);
+    if (mode.event) {
+      if (all.some(m => !m.fit)) fails.push(`${tag}: a unit has no event-fit info`);
+      const bad = all.filter(m => m.fit && !m.fit.ok);
+      // (notes name the card as it starts: a unit shown in its exchanged form carries that name in startsAs)
+      for (const m of bad) if (!(t.fitNotes || []).some(n => n.startsWith(m.startsAs || m.name))) fails.push(`${tag}: ${m.name} won't last and the team doesn't say so`);
+      // added by the builder: every non-pick slot, and the friend always (even a copy of your pick)
+      const addedBad = bad.filter(m => !m.pick || m.role === 'Friend');
+      if (t.unfit !== addedBad.length) fails.push(`${tag}: unfit says ${t.unfit}, the team has ${addedBad.length} added unit(s) that won't last`);
+      if (sc.lasting && addedBad.length) fails.push(`${tag}: added unit(s) that won't last: ${addedBad.map(m => m.name).join(', ')}`);
+      if (sc.lasting && all.some(m => baseId(m) === '1032261')) fails.push(`${tag}: the DAIMA SSJ4 Goku (Mini) is in the team again`);
+    } else if (all.some(m => m.fit) || (t.fitNotes || []).length) fails.push(`${tag}: event-fit info without an event`);
   });
-  // Event mode: among teams boosting the same number of picks, the one closer to real clears comes first.
+  // Events: among teams boosting the same number of picks, fewer added units that won't last come first.
+  if (mode.event) {
+    const cov = t => t.members.filter(m => m.pick && m.covered).length;
+    const list = sc.locked ? r.teams.slice(1) : r.teams;
+    for (let i = 1; i < list.length; i++)
+      if (cov(list[i]) === cov(list[i - 1]) && list[i].unfit < list[i - 1].unfit)
+        fails.push(`team ${i + 1 + (sc.locked ? 1 : 0)} adds fewer units that won't last than the team above it`);
+  }
+  // Event mode: among teams boosting the same number of picks (with as many units that won't last), the one closer
+  // to real clears comes first.
   if (mode.event === 'festival') {
     const cov = t => t.members.filter(m => m.pick && m.covered).length;
     const list = sc.locked ? r.teams.slice(1) : r.teams;
     for (let i = 1; i < list.length; i++)
-      if (cov(list[i]) === cov(list[i - 1]) && (list[i].proven?.score || 0) > (list[i - 1].proven?.score || 0) + 1e-9)
+      if (cov(list[i]) === cov(list[i - 1]) && list[i].unfit === list[i - 1].unfit && (list[i].proven?.score || 0) > (list[i - 1].proven?.score || 0) + 1e-9)
         fails.push(`team ${i + 1 + (sc.locked ? 1 : 0)} is closer to real clears than the team above it`);
     // the proven-teams list: real 7-unit teams, closest to your picks first
     const P = r.proven;
@@ -131,10 +157,20 @@ function unitTests() {
   eq('no clear data for Meteor Survival', t.clearsOf('meteor'), null);
   eq('no clear data without an event', t.clearsOf(null), null);
   // the strict order: covering a pick beats any amount of quality
-  const mkTeam = (cov, lcov, score, id) => ({ coveredPicks: cov, leaderCoveredPicks: lcov, score, lead: { L: { id }, F: { id } } });
+  const mkTeam = (cov, lcov, score, id, unfit = 0) => ({ coveredPicks: cov, leaderCoveredPicks: lcov, score, unfit, lead: { L: { id }, F: { id } } });
   eq('order: more picks boosted wins over a huge score', [mkTeam(2, 2, 99999, 'a'), mkTeam(3, 3, 1, 'b')].sort(t.compareTeams)[0].lead.L.id, 'b');
   eq('order: own leader boosting a pick beats friend-only', [mkTeam(3, 2, 99999, 'a'), mkTeam(3, 3, 1, 'b')].sort(t.compareTeams)[0].lead.L.id, 'b');
   eq('order: ties broken by leader id', [mkTeam(3, 3, 5, 'z'), mkTeam(3, 3, 5, 'a')].sort(t.compareTeams)[0].lead.L.id, 'a');
+  eq('order: no added unit that won\'t last beats a huge score', [mkTeam(3, 3, 99999, 'a', 2), mkTeam(3, 3, 1, 'b', 0)].sort(t.compareTeams)[0].lead.L.id, 'b');
+  eq('order: ... and beats your own leader boosting a pick', [mkTeam(3, 3, 1, 'a', 1), mkTeam(3, 2, 1, 'b', 0)].sort(t.compareTeams)[0].lead.L.id, 'b');
+  eq('order: boosting every pick still comes first', [mkTeam(2, 2, 1, 'a', 0), mkTeam(3, 3, 1, 'b', 2)].sort(t.compareTeams)[0].lead.L.id, 'b');
+  // the event rule: it lasts if it stacks or players cleared the event with it (Gomah: no stack, 3 posted clears)
+  const u = (id, score) => ({ id, stacking: { score } });
+  eq('lasts: stacks, never cleared with', t.fitsEvent(cl, u('1000001', 2)), true);
+  eq('lasts: no stack, in 3 posted clears', t.fitsEvent(cl, u('1032311', 0)), true);
+  eq('lasts: no stack, no clear', t.fitsEvent(cl, u('1000001', 0)), false);
+  eq('lasts: no stack, no clear data (Meteor)', t.fitsEvent(null, u('1032311', 0)), false);
+  eq('clears counted over both forms', t.clearCount(cl, { id: '1000001', xform: { id: '1032311' } }), 3);
   return fails;
 }
 
@@ -203,6 +239,50 @@ function unitTests() {
     if (ids.includes('1016871')) fails.push('offers a unit marked "I don\'t have it"');
     if (!ids.includes('1030481')) fails.push('the current leader is missing from the list');
     return fails;
+  });
+  await extra('Replace picker in an event: a unit that won\'t last is never "best" and comes after the ones that do', async () => {
+    const picks = ['1032311', '1031921', '1034151'];
+    const out = await team.swapPreview('1027221', picks, '1027221', ['1027221', '1032261', '1028021', '1028011', '1021291'],
+      BOX, true, null, { picks, event: 'festival' });
+    const fails = [];
+    const daima = out.find(x => x.id === '1032261');
+    if (!daima) fails.push('the DAIMA SSJ4 Goku (Mini) is missing from the list');
+    else if (daima.fits !== false) fails.push('the DAIMA SSJ4 Goku (Mini) is marked as lasting');
+    if (out.some(x => x.best && !x.fits)) fails.push('a unit that won\'t last is marked best');
+    for (let i = 1; i < out.length; i++)
+      if (out[i].uncoveredPicks.length === out[i - 1].uncoveredPicks.length && out[i].fits && !out[i - 1].fits)
+        fails.push(`${out[i].name} lasts but is listed below ${out[i - 1].name}, which doesn't`);
+    return fails;
+  });
+  await extra('the DAIMA SSJ4 Goku (Mini) doesn\'t last Festival (no stack, no posted clear); Gomah does (3 clears)', async () => {
+    const src = require('../lib/source'), t = team._t, cl = t.clearsOf('festival');
+    const fails = [];
+    if (t.fitsEvent(cl, await src.unit('1032261'))) fails.push('the DAIMA SSJ4 Goku (Mini) counts as lasting');
+    if (!t.fitsEvent(cl, await src.unit('1032311'))) fails.push('Gomah doesn\'t count as lasting');
+    return fails;
+  });
+  // The ground the event rule stands on: "it stacks" has to describe the units players really clear with.
+  await extra('the event rule matches real clears: at least 85% of the unit slots in the 155 posted Festival clears stack', async () => {
+    const src = require('../lib/source'), d = require('../data/festival-of-battles-clears.json');
+    const memo = new Map();
+    const stacks = id => {
+      if (!memo.has(id)) memo.set(id, (async () => {
+        try {
+          const u = await src.unit(id);
+          let x = null;
+          if (u.exchangeWith) { try { x = await src.exchangeForm(u); } catch {} }
+          return [u, x].filter(Boolean).some(f => (f.stacking?.score || 0) > 0);
+        } catch { return null; }
+      })());
+      return memo.get(id);
+    };
+    let n = 0, yes = 0;
+    for (const tm of d.teams) for (const id of [tm.leader, ...tm.subs, tm.friend]) {
+      const s = await stacks(id);
+      if (s === null) continue;
+      n++; if (s) yes++;
+    }
+    return n > 1000 && yes / n >= 0.85 ? [] : [`${yes}/${n} unit slots stack (${(100 * yes / n).toFixed(1)}%)`];
   });
 
   await extra('"Use this team" rebuilds a posted clear exactly (leader, friend, all 6), without calling them your picks', async () => {
