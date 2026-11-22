@@ -109,6 +109,27 @@
   .surv h5.lastH { margin:14px 0 4px; font-size:12.5px; color:var(--text); } .surv table.last td { padding:3px 6px; }
   .surv .tipline { margin:0 0 8px; padding:6px 8px; border-radius:8px; background:#f5c54214; font-size:12.5px; }
   .surv td b.ok { color:#5fd38a; } .surv td b.bad { color:#ff8a6b; } .surv tr.need td { background:#ffffff08; }
+  /* "Never stacks / Stacks every time it's out": one case of the last-enemies table at a time */
+  .surv .stackseg { display:flex; flex-wrap:wrap; width:max-content; max-width:100%; border:1px solid var(--line); border-radius:9px; overflow:hidden; margin:2px 0 6px; }
+  .surv .stackseg button { border:0; background:transparent; color:var(--dim); font:inherit; font-size:12px; padding:5px 10px; cursor:pointer; }
+  .surv .stackseg button.on { background:var(--accent); color:#111; font-weight:700; }
+  .surv .stackseg button:focus-visible { outline:2px solid var(--accent); outline-offset:-2px; }
+  .surv .defcase[data-case="never"] .c-stacks, .surv .defcase[data-case="stacks"] .c-never { display:none; }
+  /* 🛡 DEF check under the map: each bar is full at the DEF the unit needs vs the last enemy's normal attacks */
+  .defchk { margin-top:12px; background:#15171c; border:1px solid var(--line); border-radius:12px; padding:10px 12px; }
+  .defchk h4 { margin:0 0 2px; font-size:14px; } .defchk .sub { margin:0 0 8px; font-size:12px; color:var(--dim); }
+  .defchk .bars { display:flex; flex-direction:column; gap:9px; }
+  .defchk .top { display:flex; justify-content:space-between; gap:8px; font-size:12.5px; }
+  .defchk .top .n { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .defchk .top .need { white-space:nowrap; color:var(--dim); } .defchk .top .need b { color:var(--text); }
+  .defchk .track { position:relative; height:9px; border-radius:5px; background:#ffffff10; margin:3px 0 2px; overflow:hidden; }
+  .defchk .track i { position:absolute; left:0; top:0; bottom:0; border-radius:5px; }
+  .defchk i.now { background:#ff8a6b; } .defchk i.now.ok { background:#5fd38a; }
+  .defchk i.st { background:repeating-linear-gradient(135deg, #f0a03066 0 5px, #f0a03033 5px 10px); }
+  .defchk i.st.ok { background:repeating-linear-gradient(135deg, #5fd38a99 0 5px, #5fd38a55 5px 10px); }
+  .defchk .bot { font-size:11.5px; color:var(--dim); } .defchk b.ok { color:#5fd38a; } .defchk b.bad { color:#ff8a6b; }
+  .defchk .dleg { display:flex; gap:12px; flex-wrap:wrap; font-size:11px; color:var(--dim); margin-top:8px; }
+  .defchk .dleg i { display:inline-block; width:18px; height:8px; border-radius:4px; vertical-align:middle; margin-right:4px; }
   .chip.c { cursor:help; } .chip.c.all { background:#1f6b45; color:#bff2d6; } .chip.c.some { background:#5c4a17; color:#ffe08a; } .chip.c.none { background:#5a2a24; color:#ff9b8f; }
   .band .cmark { float:right; font-weight:700; font-size:11px; padding:0 6px; border-radius:6px; }
   .band .cmark.met { background:#1f6b45; color:#bff2d6; } .band .cmark.unmet { background:#5a2a24; color:#ff9b8f; }
@@ -484,7 +505,7 @@ function rotationMap(t) {
       + `• By the end${sv.role && sv.role !== 'first' ? ` (attacks ${sv.role === 'second' ? '2nd' : 'as a floater'}: counted as if the unit before it always kills)` : ''}, DEF ${fmtK(sv.stacked)}: normal attacks ${pTxt(sv.stackedLasts.normal)}; Super Attacks ${pTxt(sv.stackedLasts.super)}\n`
       + (sv.ifAttacks ? `• If it attacks every time it's out, DEF ${fmtK(sv.ifAttacks.stacked)}: normal attacks ${pTxt(sv.ifAttacks.lasts.normal)}; Super Attacks ${pTxt(sv.ifAttacks.lasts.super)}\n` : '')
       + (sv.swap ? `⇄ Stacked enough to give up the 1st slot: ${sv.swap.normal ? `vs normal attacks at ${fmtK(sv.swap.normal.def)} (around phase ${sv.swap.normal.phase})` : 'never vs normal attacks'}, ${sv.swap.super ? `vs Super Attacks at ${fmtK(sv.swap.super.def)} (phase ${sv.swap.super.phase})` : 'never vs Super Attacks'}\n` : '')
-      + `Guard ${sv.kit.guard ? 'yes' : 'no'} · damage reduction ${sv.kit.dr}% · ${sv.state} stats, full Hidden Potential` : '';
+      + `Guard ${sv.kit.guard ? 'yes (every hit ×0.80)' : 'no'} · damage reduction ${sv.kit.dr}% · ${sv.state} stats, full Hidden Potential` : '';
     const swapChip = sv?.swap ? `<span class="chip sw ${sv.swap.normal ? 'ok' : ''}" title="${esc(sv.swap.normal
       ? `Stacker: once it has ${fmtK(sv.swap.normal.def)} DEF (around phase ${sv.swap.normal.phase}) it is safe vs normal attacks for the rest of the event, even if it stops attacking. Then you can swap the rotation so another unit attacks 1st.`
       : 'Stacker: it never stacks enough for the whole event, so let it attack 1st as long as you can. Details show how far it lasts if you swap at different phases.')}">⇄ ${sv.swap.normal ? 'done P' + sv.swap.normal.phase : 'keep stacking'}</span>` : '';
@@ -524,6 +545,38 @@ function rotationMap(t) {
     data-edges='${esc(JSON.stringify(t.map.edges.map(e => [e.a, e.b, e.links.length, edgeColor(e)])))}'><svg></svg>${cells}</div>
     <div class="legend">${legend}</div>
     <p class="note" style="margin:6px 0 0">Tap a unit for details, to replace it, or to mark it as one you don’t have.</p>`;
+}
+// 🛡 DEF check (event mode): the DEF each unit needs to take 0 damage from the last enemy's normal attacks, with its
+// guard and damage reduction in its slot, against the DEF it has there. Each bar is full at what the unit needs:
+// solid = without stacking, striped = if it stacks every time it's out (a unit that attacks 1st always does).
+const CHECK_SLOT = { r1a: 'Rotation 1 · 1st', r1b: 'Rotation 1 · 2nd', r2a: 'Rotation 2 · 1st', r2b: 'Rotation 2 · 2nd', f1: 'Floater', f2: 'Floater', f3: 'Floater' };
+function defCheck(t) {
+  const byId = Object.fromEntries(t.members.map(m => [m.id, m]));
+  const rows = Object.keys(CHECK_SLOT).map(pos => {
+    const sv = t.map.stats[pos]?.surv, e = sv?.lastEnemies?.[sv.lastEnemies.length - 1];
+    const m = pos === 'f3' ? t.friend : byId[t.map.slots[pos]];
+    return sv && e && m ? { pos, sv, e, m } : null;
+  }).filter(Boolean);
+  if (!rows.length) return '';
+  const k = x => x >= 1e6 ? (x / 1e6).toFixed(2) + 'M' : Math.round(x / 1e3) + 'k';
+  const last = rows[0].e;
+  const bars = rows.map(({ pos, sv, e, m }) => {
+    const need = e.normal, never = e.def ?? sv.stacked, stacks = e.defIfAttacks ?? never;
+    const two = sv.role !== 'first' && Math.round(stacks) !== Math.round(never);
+    const okNow = never >= need, okSt = stacks >= need;
+    const counted = [e.guard ? 'guard' : '', e.dr ? `−${e.dr}% damage` : ''].filter(Boolean).join(' · ') || 'nothing';
+    const tag = pos === 'r1a' ? '<span class="chip l">L</span> ' : pos === 'f3' ? '<span class="chip f">F</span> ' : '';
+    const bot = okNow ? `has ${k(never)} <b class="ok">✓</b>${never >= 2 * need ? ` (${(never / need).toFixed(1)}×)` : ''}`
+      : two ? `has ${k(never)} without stacking · ${k(stacks)} if it stacks ${okSt ? '<b class="ok">✓</b>' : `<b class="bad">short ${k(need - stacks)}</b>`}`
+      : `has ${k(never)} <b class="bad">short ${k(need - never)}</b>`;
+    return `<div class="br"><div class="top"><span class="n">${tag}${esc(m.name)}</span><span class="need">needs <b>${k(need)}</b></span></div>
+      <div class="track" aria-hidden="true">${two ? `<i class="st${okSt ? ' ok' : ''}" style="width:${(Math.min(1, stacks / need) * 100).toFixed(1)}%"></i>` : ''}<i class="now${okNow ? ' ok' : ''}" style="width:${Math.max(1.5, Math.min(1, never / need) * 100).toFixed(1)}%"></i></div>
+      <div class="bot">${CHECK_SLOT[pos]} · counted: ${counted} · ${bot}</div></div>`;
+  }).join('');
+  return `<div class="defchk"><h4>🛡 DEF check · ${esc(last.enemy)}, normal attacks</h4>
+    <p class="sub">The DEF each unit needs to take 0 damage at phase ${last.phase}, with its guard and damage reduction in its slot.</p>
+    <div class="bars">${bars}</div>
+    <div class="dleg"><span><i class="now"></i>its DEF without stacking</span><span><i class="st"></i>if it stacks every time it's out</span><span>full bar = enough</span></div></div>`;
 }
 
 function drawMaps() {
@@ -720,6 +773,15 @@ async function openDetails(id, c) {
       : `<b class="bad">Takes damage from phase 1</b><br><span class="note">${esc(l.breaksAt.enemy)} already gets through</span>`;
     const need = n => `<b>${k(n.need)}</b><br><span class="note">for ${esc(n.enemy)} (phase ${n.phase})</span>`;
     const kit = sv.kit;
+    // What its kit takes off every hit over those enemies: guard (the enemy's hit counts ×0.80), damage reduction.
+    const countedTxt = rows => {
+      const e = rows[rows.length - 1], parts = [];
+      if (e.guard) parts.push('<b>guard</b>, every hit ×0.80');
+      if (e.dr || e.drSuper) parts.push(e.dr === e.drSuper ? `<b>damage reduction ${e.dr}%</b>` : `<b>damage reduction</b> ${e.dr}% vs normal attacks, ${e.drSuper}% vs Super Attacks`);
+      const same = rows.every(r => r.guard === e.guard && r.dr === e.dr && r.drSuper === e.drSuper);
+      return parts.length ? `Counted on every hit${same ? '' : ' by the last enemy'}: ${parts.join(' · ')}.`
+        : 'No guard or damage reduction holds for every hit in this slot (see Kit below).';
+    };
     // Where it attacks from decides whether it gets to stack: the 1st attacker always hits; the 2nd and the floater
     // only attack if the enemy is still standing.
     const slotTxt = { first: 'attacks <b>1st</b> in its rotation, so it always gets its attack in',
@@ -728,7 +790,6 @@ async function openDetails(id, c) {
     const blockedCase = sv.role !== 'first';
     const tip = blockedCase && sv.attackStacker
       ? `<p class="tipline">💡 It stacks DEF by attacking, but from this slot it often won't get to. Put it <b>1st in a rotation</b> to make its stacks count.</p>` : '';
-    const atLabel = blockedCase ? 'its DEF there if it never attacks' : 'its DEF there';
     return `<div class="sec surv"><h4>🛡 Survival · ${esc(sv.eventName.replace(/^.*?! /, ''))}</h4><div class="panel"><div class="pad">
       ${sv.needed ? `<p style="margin:0 0 6px">To take <b>no damage at all</b> for the whole event, this unit needs
         <b>${k(sv.needed.normal.need)} DEF</b> against normal attacks and <b>${k(sv.needed.super.need)} DEF</b> against Super Attacks.
@@ -768,20 +829,35 @@ async function openDetails(id, c) {
           ${w.marks.length ? `<table class="last"><tr><th>If it stops attacking at</th><th>Its DEF</th><th>Safe vs normal until</th><th>Safe vs Supers until</th></tr>
             ${w.marks.map(m => `<tr><td>phase ${m.phase}</td><td>${k(m.def)}</td><td>${res(m.normal)}</td><td>${res(m.super)}</td></tr>`).join('')}</table>` : ''}`;
       })() : ''}
-      ${sv.lastEnemies?.length ? `<h5 class="lastH">Last ${sv.lastEnemies.length} enemies · DEF needed for 0 damage
-        <span class="note">(✓ = ${atLabel} is enough)</span></h5>
-      <table class="last"><tr><th>Phase</th><th>Enemy</th><th>Its DEF${blockedCase ? '<br><span class="note">never attacks / attacks</span>' : ''}</th><th>Normal attacks</th><th>Super Attacks</th></tr>
-        ${sv.lastEnemies.map(e => {
-          const have = e.def ?? sv.stacked;
-          const cell = n => have >= n ? `<b class="ok">${k(n)} ✓</b>` : `<b class="bad">${k(n)}</b> <span class="note">short ${k(n - have)}</span>`;
-          const defCell = blockedCase && e.defIfAttacks != null ? `${k(have)} <span class="note">/ ${k(e.defIfAttacks)}</span>` : k(have);
-          return `<tr><td>${e.phase}</td><td>${esc(e.enemy)}${e.crit ? ' <span class="note">(crits ×1.5)</span>' : ''}</td><td>${defCell}</td><td>${cell(e.normal)}</td><td>${cell(e.super)}</td></tr>`;
-        }).join('')}</table>` : ''}
-      <div class="note" style="margin-top:8px">Kit: ${kit.guard ? 'guards all attacks · ' : ''}damage reduction ${kit.dr}% · passive DEF +${kit.start}%${kit.receiving ? ` (+${kit.receiving}% when hit)` : ''}${
-        kit.stackCap ? ` · stacks up to +${kit.stackCap}% DEF from its passive` : ''}${kit.saStack ? ` · +${kit.saStack}% DEF per Super Attack (permanent)` : ''}.
+      ${sv.lastEnemies?.length ? (() => {
+        // From the 2nd slot or as a floater it only stacks when it gets to attack. When that changes its DEF, a switch
+        // shows one case at a time ("Never stacks" first, the safe case) and the ✓ / "short" follow it; else one number.
+        const rows = sv.lastEnemies;
+        const twoCases = blockedCase && rows.some(e => e.defIfAttacks != null && Math.round(e.defIfAttacks) !== Math.round(e.def));
+        const tbl = which => `<table class="last${twoCases ? ' c-' + which : ''}"><tr><th>Phase</th><th>Enemy</th><th>Its DEF</th><th>Normal attacks</th><th>Super Attacks</th></tr>
+          ${rows.map(e => {
+            const have = which === 'stacks' ? e.defIfAttacks : (e.def ?? sv.stacked);
+            const cell = n => have >= n ? `<b class="ok">${k(n)} ✓</b>` : `<b class="bad">${k(n)}</b> <span class="note">short ${k(n - have)}</span>`;
+            return `<tr><td>${e.phase}</td><td>${esc(e.enemy)}${e.crit ? ' <span class="note">(crits ×1.5)</span>' : ''}</td><td>${k(have)}</td><td>${cell(e.normal)}</td><td>${cell(e.super)}</td></tr>`;
+          }).join('')}</table>`;
+        const before = sv.role === 'second' ? 'from the 2nd slot the unit before it often kills the enemy first' : 'from the 3rd slot the units before it often kill the enemy first';
+        const grows = kit.saStack ? `+${kit.saStack}% DEF for good with each Super Attack it gets in: about ${sv.supersByEnd} by the end.`
+          : `Its DEF grows each time it attacks: about ${sv.supersByEnd} attacks by the end.`;
+        return `<h5 class="lastH">Last ${rows.length} enemies · DEF needed for 0 damage${twoCases ? '' : ' <span class="note">(✓ = its DEF there is enough)</span>'}</h5>
+          <p class="note" style="margin:0 0 4px">${countedTxt(rows)}</p>
+          ${twoCases ? `<div class="defcase" data-case="never">
+            <div class="stackseg" role="group" aria-label="Its DEF"><button type="button" data-case="never" class="on" aria-pressed="true">Never stacks</button><button type="button" data-case="stacks" aria-pressed="false">Stacks every time it's out</button></div>
+            <p class="note c-never" style="margin:0 0 4px">It only stacks when it gets to attack, and ${before}. This is the safe case.</p>
+            <p class="note c-stacks" style="margin:0 0 4px">${grows}</p>
+            ${tbl('never')}${tbl('stacks')}</div>` : tbl('never')}`;
+      })() : ''}
+      <div class="note" style="margin-top:8px">Kit: ${kit.guard ? 'guards all attacks (every hit counts ×0.80) · ' : ''}damage reduction ${kit.dr}% · passive DEF +${kit.start}%${kit.receiving ? ` (+${kit.receiving}% when hit)` : ''}${
+        kit.stackCap ? ` · stacks up to +${kit.stackCap}% DEF from its passive` : ''}${kit.saStack ? ` · +${kit.saStack}% DEF per Super Attack (permanent)` : ''}${
+        (kit.notes || []).map(x => ' · ' + esc(x)).join('')}.
+        ${kit.notCounted?.length ? `<br>Not counted, because it doesn't hold for every hit: ${kit.notCounted.map(x => `“${esc(x.text)}” (${esc(x.why)})`).join('; ')}.<br>` : ''}
         Base DEF ${sv.base.toLocaleString()} (${esc(sv.state)}, full Hidden Potential), with both leader skills and its active links.
-        Neutral, same-class match-up: type advantage helps a lot, a disadvantage hurts. Enemies that can crit are counted at their worst (×1.5).
-        Enemy stats from DokkanInfo; formula from DokkanStats.</div>
+        Neutral, same-class match-up: type advantage (which also guards) isn't counted, as the event data has no enemy types. Enemies that can crit are counted at their worst (×1.5).
+        Enemy stats from DokkanInfo; formula from DokkanStats (same in a second damage calculator).</div>
     </div></div></div>`;
   };
   const condMark = cond => {
@@ -851,6 +927,14 @@ async function openDetails(id, c) {
     }
   };
 }
+// The survival table's "Never stacks / Stacks every time it's out" switch.
+document.addEventListener('click', e => {
+  if (!(e.target instanceof Element)) return;
+  const b = e.target.closest('.stackseg button[data-case]'); if (!b) return;
+  const box = b.closest('.defcase'); if (!box) return;
+  box.dataset.case = b.dataset.case;
+  box.querySelectorAll('.stackseg button').forEach(x => { x.classList.toggle('on', x === b); x.setAttribute('aria-pressed', String(x === b)); });
+});
 let lastPicker = null;   // the Replace picker currently open, if any
 // ⓘ on any card (search, box, Also fits, picker) opens its details. From inside the Replace picker, ‹ goes back to it.
 document.addEventListener('click', e => {
@@ -887,6 +971,7 @@ function board(t) {
       <div class="who"><div class="lab f">FRIEND</div>${dkt(t.friend)}<div class="nm">${esc(t.friend.name)}</div><span class="teamtot friendtot">Team +${t.teamBoostF}%</span></div>
     </div>
     ${rotationMap(t)}
+    ${defCheck(t)}
     <div class="leaderbox"><b>Leader:</b> ${esc(L.name)}: ${esc(t.leaderSkill)} · covers ${t.covered} / ${t.size}</div>
     ${t.coverNote ? `<div class="missing covwarn">⚠ <b>${esc(t.coverNote)}</b>${t.kept ? ' Tap × next to "Leader kept" above to let the builder choose again.' : ''}</div>` : ''}
     ${(t.fitNotes || []).map(n => `<div class="missing covwarn">⚠ <b>${esc(n)}</b></div>`).join('')}
