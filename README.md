@@ -14,8 +14,9 @@ real players cleared with.
 - **Your box:** units you own come first, and missing units get a stand-in from your box.
 - **Events (Festival of Battles, Meteor Survival):**
   - real cleared teams closest to your picks, with a "Use this team" button;
-  - stackers in the open slots;
-  - how long each unit takes 0 damage.
+  - only units that last: the builder adds a leader, friend or sub only if it stacks or players cleared the event
+    with it (87% of the units in the posted Festival clears stack). Your own picks stay, with a ⚠ if they don't;
+  - how long each unit takes 0 damage (an estimate only: it decides nothing).
 - **Details for any unit:** leader skill, Super Attacks, passive, links, exchange form, when it stacks enough
   to give up the first slot.
 

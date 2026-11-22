@@ -660,7 +660,7 @@ function openPicker(c) {
     const seq = ++loadSeq;
     m.querySelector('.cands').innerHTML = '<p class="loading">Working out each option in this slot…</p>';
     const q = new URLSearchParams({ leader: isLeadSlot ? c.me.id : c.leader, slot: c.me.id, subs: map.dataset.subs,
-      cands: cands.join(','), festival: $('#event').value ? '1' : '0', friend: map.dataset.friend || '',
+      cands: cands.join(','), festival: $('#event').value ? '1' : '0', event: $('#event').value, friend: map.dataset.friend || '',
       picks: picks.map(p => p.id).join(','), exclude: excluded.map(x => x.id).join(',') });
     try { const res = await api('/api/swap?' + q); if (seq !== loadSeq) return; list = res; render(); }
     catch (e) { if (seq === loadSeq) m.querySelector('.cands').innerHTML = `<p class="note">Error: ${esc(e.message)}</p>`; }
@@ -889,9 +889,10 @@ function board(t) {
     ${rotationMap(t)}
     <div class="leaderbox"><b>Leader:</b> ${esc(L.name)}: ${esc(t.leaderSkill)} · covers ${t.covered} / ${t.size}</div>
     ${t.coverNote ? `<div class="missing covwarn">⚠ <b>${esc(t.coverNote)}</b>${t.kept ? ' Tap × next to "Leader kept" above to let the builder choose again.' : ''}</div>` : ''}
+    ${(t.fitNotes || []).map(n => `<div class="missing covwarn">⚠ <b>${esc(n)}</b></div>`).join('')}
     ${t.friendSkill ? `<div class="leaderbox friendbox"><b>Friend leader:</b> ${esc(t.friend.name)}: ${esc(t.friendSkill)}
-      <span class="note">· a different leader than yours: borrow it from a friend so its skill boosts the team too.
-      It's here for its leader skill (Team +${t.teamBoostF}%), not as a stacker: "stackers only" is for your 5 subs.${t.friend.stacker ? '' : ' It doesn\'t stack itself.'}</span></div>` : ''}
+      <span class="note">· a different leader than yours: borrow it from a friend so its skill boosts the team too.${
+      t.friend.fit && !t.friend.fit.stacks && t.friend.fit.clears ? ` It doesn't stack, but ${t.friend.fit.clears} posted clears used it.` : ''}</span></div>` : ''}
     ${t.proven ? (() => {
       const p = t.proven;
       const top = p.top.map(u => `${esc(u.name)} (${u.n})`).join(', ');
@@ -959,7 +960,7 @@ async function runBuild() {
     if (!r.teams.length) return ($('#out').innerHTML = warn + '<p class="note">No leader found that covers these picks.</p>');
     const [best, ...others] = r.teams;
     lastProven = r.proven || null;
-    $('#out').innerHTML = `${provenSection(r)}<h3 id="yourteam">Your team${r.eventName ? ` · ${esc(r.eventName.replace(/^.*?! /, ''))} (open slots: stackers only)` : ''}</h3>${warn}${board(best)}
+    $('#out').innerHTML = `${provenSection(r)}<h3 id="yourteam">Your team${r.eventName ? ` · ${esc(r.eventName.replace(/^.*?! /, ''))} (only units that stack${r.hasClears ? ' or appear in real clears' : ''})` : ''}</h3>${warn}${board(best)}
       ${others.length ? `<div class="row2"><span class="note">${r.boxSize ? '' : 'Your box is empty: add units in “My box” so the tool can fill teams you own.'}</span>
         <button class="btn ghost" id="more">Show other leaders (${others.length})</button></div>
         <div id="others" hidden><h3>Other leaders</h3>${others.map(board).join('')}</div>` : ''}

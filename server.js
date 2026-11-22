@@ -157,7 +157,7 @@ http.createServer(async (req, res) => {
       const subs = [...new Set(ids(url, 'subs'))].slice(0, 5);
       return send(res, 200, await team.swapPreview(leader, subs, slot, [...new Set([slot, ...ids(url, 'cands')])].slice(0, 30),
         readBox().map(b => b.id), url.searchParams.get('festival') === '1', ids(url, 'friend')[0],
-        { picks: ids(url, 'picks'), exclude: ids(url, 'exclude') }));
+        { picks: ids(url, 'picks'), exclude: ids(url, 'exclude'), event: (url.searchParams.get('event') || '').replace(/[^a-z]/g, '') }));
     }
 
     if (url.pathname === '/api/cancel') {
