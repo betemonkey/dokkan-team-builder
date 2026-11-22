@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mockup: building animation</title>
+<style>
+  :root { --bg:#111317; --card:#1b1e24; --line:#2c3038; --text:#e8e8ea; --dim:#9aa0aa; --accent:#f0a030; --ok:#4cc38a;
+          --agl:#0579e3; --teq:#22a139; --int:#aa46c3; --str:#c72126; --phy:#bd7204; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font:15px/1.45 system-ui, sans-serif; }
+  main { max-width:1200px; margin:0 auto; padding:16px; }
+  h1 { font-size:22px; margin:4px 0 6px; } h1 span { color:var(--accent); } .note { color:var(--dim); font-size:13px; }
+  .row { display:flex; gap:20px; flex-wrap:wrap; justify-content:center; margin-top:16px; }
+  .opt { width:370px; max-width:100%; } .opt h3 { margin:0 0 4px; color:var(--accent); font-size:15px; } .opt p { margin:0 0 8px; font-size:12px; color:var(--dim); min-height:64px; }
+  .stage { height:360px; border:1px solid var(--line); border-radius:14px; background:var(--card); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px; padding:18px; overflow:hidden; position:relative; }
+
+  /* shared: real progress steps */
+  .steps { width:100%; max-width:280px; font-size:13px; }
+  .steps div { display:flex; gap:8px; align-items:center; padding:3px 0; color:#5d636e; }
+  .steps div::before { content:''; width:14px; height:14px; border-radius:50%; border:2px solid #3a3f49; flex:none; }
+  .steps .done { color:var(--dim); } .steps .done::before { background:var(--ok); border-color:var(--ok); }
+  .steps .now { color:var(--text); font-weight:600; } .steps .now::before { border-color:var(--accent); border-top-color:transparent; animation:spin .8s linear infinite; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+
+  /* A: orb charging with orbiting type spheres */
+  .orbwrap { position:relative; width:150px; height:150px; }
+  .orb { position:absolute; inset:38px; border-radius:50%; background:radial-gradient(circle at 35% 30%, #ffd98a, #f0a030 45%, #c9600e);
+         box-shadow:0 0 18px #f0a03088, 0 0 50px #f0a03044; animation:pulse 1.4s ease-in-out infinite; }
+  .orb::after { content:'★'; position:absolute; inset:0; display:grid; place-items:center; color:#c81e1e; font-size:30px; }
+  @keyframes pulse { 50% { transform:scale(1.07); box-shadow:0 0 26px #f0a030bb, 0 0 70px #f0a03066; } }
+  .ring { position:absolute; inset:0; animation:spin 2.6s linear infinite; }
+  .ring i { position:absolute; width:16px; height:16px; border-radius:50%; left:67px; top:-2px; transform-origin:8px 77px; box-shadow:0 0 8px currentColor; }
+  .ring i:nth-child(1) { background:var(--agl); color:var(--agl); transform:rotate(0deg); }
+  .ring i:nth-child(2) { background:var(--teq); color:var(--teq); transform:rotate(72deg); }
+  .ring i:nth-child(3) { background:var(--int); color:var(--int); transform:rotate(144deg); }
+  .ring i:nth-child(4) { background:var(--str); color:var(--str); transform:rotate(216deg); }
+  .ring i:nth-child(5) { background:var(--phy); color:var(--phy); transform:rotate(288deg); }
+
+  /* B: skeleton of the rotation map, links drawing in */
+  .skel { width:100%; display:grid; grid-template-columns:repeat(3,1fr); row-gap:14px; position:relative; }
+  .sk { width:62px; height:62px; margin:0 auto; border-radius:10px; background:linear-gradient(100deg,#262a33 30%,#343a46 50%,#262a33 70%); background-size:300% 100%; animation:shim 1.3s linear infinite; }
+  .sk.l { box-shadow:0 0 0 2px #e3b23c55; }
+  @keyframes shim { from { background-position:100% 0; } to { background-position:0 0; } }
+  .skel svg { position:absolute; inset:0; width:100%; height:100%; }
+  .skel path { fill:none; stroke-width:2; stroke-dasharray:160; stroke-dashoffset:160; animation:draw 2.4s ease-in-out infinite; }
+  @keyframes draw { 50%,100% { stroke-dashoffset:0; } 100% { opacity:0; } }
+  .line1 { font-size:13px; color:var(--dim); text-align:center; } .line1 b { color:var(--text); }
+
+  /* C: 12-segment Ki bar */
+  .kibar { display:flex; gap:4px; }
+  .kibar i { width:18px; height:30px; border-radius:5px; background:#2a2e37; border:1px solid #3a3f49; animation:ki 2.4s steps(1) infinite; }
+  .kibar i:nth-child(n) { animation-delay:calc(var(--n) * .16s); }
+  @keyframes ki { 0% { background:#2a2e37; box-shadow:none; } 10% { background:linear-gradient(#ffe08a,#f0a030); box-shadow:0 0 10px #f0a03088; } 90% { background:linear-gradient(#ffe08a,#f0a030); } }
+  .kitext { font-size:26px; font-weight:900; letter-spacing:.06em; color:#ffd36a; text-shadow:0 0 12px #f0a03088; }
+  .quick { position:absolute; bottom:10px; left:0; right:0; text-align:center; font-size:11px; color:#5d636e; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Dokkan <span>Team Builder</span>: building animation</h1>
+  <p class="note">Shown where the team appears while it's being built. The steps are real: the server reports each stage as it goes (on a first build of new units that's 20–60 s; when everything is cached it's under a second, so the animation only flashes).</p>
+  <div class="row">
+    <div class="opt"><h3>A · Charging orb</h3><p>The app's orb pulses while the five type spheres orbit it. Under it, the real steps tick off one by one.</p>
+      <div class="stage"><div class="orbwrap"><div class="ring"><i></i><i></i><i></i><i></i><i></i></div><div class="orb"></div></div>
+        <div class="steps"><div class="done">Loading your 3 picks</div><div class="done">Reading their link partners</div><div class="now">Searching leader categories (41 of 80)</div><div>Ranking leaders</div><div>Arranging the rotation</div></div></div></div>
+    <div class="opt"><h3>B · Map taking shape</h3><p>The team map's outline appears straight away as shimmering placeholders, with link lines drawing between them. One status line underneath.</p>
+      <div class="stage"><div class="skel"><svg viewBox="0 0 330 230" preserveAspectRatio="none">
+          <path d="M80,40 C130,40 170,40 210,40" stroke="#e3b23c"/><path d="M80,190 C130,190 170,190 210,190" stroke="#e3b23c" style="animation-delay:.3s"/>
+          <path d="M210,40 C250,40 260,115 300,115" stroke="#3fb6a8" style="animation-delay:.6s"/><path d="M210,190 C250,190 260,115 300,115" stroke="#d9587e" style="animation-delay:.9s"/>
+          <path d="M210,40 C250,40 260,190 300,190" stroke="#5b8fd6" style="animation-delay:1.2s"/></svg>
+          <div class="sk l"></div><div class="sk"></div><div class="sk"></div><div></div><div></div><div class="sk"></div><div class="sk"></div><div class="sk"></div><div class="sk"></div></div>
+        <div class="line1">Searching leader categories · <b>41 of 80</b></div></div></div>
+    <div class="opt"><h3>C · Ki bar filling</h3><p>A 12-segment Ki bar like the one in battle fills up and starts again, with the current step in big gold letters underneath.</p>
+      <div class="stage"><div class="kibar">${''}</div><div class="kitext">BUILDING…</div><div class="line1">Ranking leaders · step 4 of 5</div></div></div>
+  </div>
+</main>
+<script>
+document.querySelector('.kibar').innerHTML = Array.from({ length: 12 }, (_, i) => `<i style="--n:${i}"></i>`).join('');
+</script>
+</body>
+</html>

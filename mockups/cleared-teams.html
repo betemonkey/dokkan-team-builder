@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mockups: cleared teams</title>
+<style>
+  :root { --bg:#111317; --card:#1b1e24; --line:#2c3038; --text:#e8e8ea; --dim:#9aa0aa; --accent:#f0a030; --ok:#4cc38a; --miss:#e5645a;
+          --dk-agl:#0579e3; --dk-teq:#22a139; --dk-int:#aa46c3; --dk-str:#c72126; --dk-phy:#bd7204; --lead:#e3b23c; --friend:#8e6be8; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font:15px/1.45 system-ui, sans-serif; }
+  main { max-width:1100px; margin:0 auto; padding:16px; }
+  h1 { font-size:22px; margin:4px 0 6px; } h1 span { color:var(--accent); }
+  .note { color:var(--dim); font-size:13px; }
+  .now { background:#ff6b4a10; border:1px solid #ff6b4a33; border-radius:12px; padding:10px 14px; margin:12px 0 4px; font-size:13px; color:#ffcfc4; }
+  .now ul { margin:4px 0 0; padding-left:18px; }
+  .opt { border:1px dashed #444; border-radius:14px; padding:14px; margin:22px 0 40px; }
+  .opt > h2 { margin:0 0 4px; font-size:18px; color:var(--accent); }
+  .opt > p.why { margin:0 0 14px; color:var(--dim); font-size:13px; }
+  h3 { margin:6px 0 4px; font-size:17px; }
+
+  /* card frame: same layering as the live app */
+  .dkt { position:relative; display:block; width:var(--w, 64px); aspect-ratio:1; flex:none; margin:12px auto 4px; }
+  .dkt.t0 { --el:var(--dk-agl); } .dkt.t1 { --el:var(--dk-teq); } .dkt.t2 { --el:var(--dk-int); } .dkt.t3 { --el:var(--dk-str); } .dkt.t4 { --el:var(--dk-phy); }
+  .dkt img { position:absolute; display:block; pointer-events:none; }
+  .dkt .fr { position:relative; width:100%; height:100%; object-fit:contain; filter:drop-shadow(0 0 5px var(--el)); }
+  .dkt .ch { width:125.5%; top:-17.5%; left:50%; transform:translateX(-50%); }
+  .dkt .ra { left:-22%; bottom:-7%; width:70%; } .dkt .ra.ssr { left:-13%; width:60%; }
+  .dkt .ty { top:-17%; right:-15%; width:43%; }
+  .badge { position:absolute; left:-7px; top:-7px; width:20px; height:20px; border-radius:50%; font-size:11px; font-weight:800; display:grid; place-items:center; z-index:3;
+           box-shadow:0 0 0 2px var(--card); }
+  .badge.L { background:var(--lead); color:#111; } .badge.F { background:var(--friend); color:#fff; }
+  .tag { display:inline-block; font-size:9px; font-weight:700; padding:1px 6px; border-radius:6px; white-space:nowrap; line-height:1.4; }
+  .tag.pick { background:var(--accent); color:#111; } .tag.own { background:var(--ok); color:#111; } .tag.miss { background:var(--miss); color:#111; }
+  .pc { text-align:center; min-width:0; cursor:pointer; border-radius:10px; }
+  .pc:hover { background:#ffffff0a; }
+  .pn { font-size:11px; line-height:1.25; color:var(--text); height:2.5em; overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; padding:0 2px; }
+  .pt { height:17px; margin-top:3px; }
+  .chip { display:inline-flex; gap:4px; align-items:center; font-size:12px; padding:2px 8px; border-radius:999px; background:#ffffff0d; border:1px solid #ffffff14; color:var(--dim); white-space:nowrap; }
+  .chip b { color:var(--text); font-weight:700; } .chip.ok b { color:var(--ok); } .chip.bad b { color:#ff9b8f; }
+  .more { color:var(--dim); font-size:13px; cursor:pointer; margin:2px 0 0; }
+  .src { margin:0 0 10px; }
+  .src a { color:#7fb6ff; }
+
+  /* ---------- A: one aligned line-up per team ---------- */
+  .listA { display:flex; flex-direction:column; gap:10px; }
+  .teamA { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:10px 12px 8px; }
+  .headA { display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin-bottom:2px; }
+  .headA .when { margin-left:auto; font-size:12px; color:var(--dim); }
+  .rowA { display:grid; grid-template-columns:minmax(0,1fr) 14px repeat(5, minmax(0,1fr)) 14px minmax(0,1fr); align-items:start; }
+  .rowA .sep { width:1px; justify-self:center; align-self:stretch; background:var(--line); margin:16px 0 22px; }
+  @media (max-width:600px) {
+    .rowA .pn { display:none; } .rowA { grid-template-columns:minmax(0,1fr) 8px repeat(5, minmax(0,1fr)) 8px minmax(0,1fr); }
+    .rowA .dkt { --w:min(48px, 100%); margin-top:10px; } .rowA .pt { height:12px; }
+    .rowA .tag { font-size:0; padding:0; width:10px; height:10px; border-radius:50%; vertical-align:middle; }
+    .headA .when { margin-left:0; }
+  }
+
+  /* ---------- B: leader + friend, then the five subs (like your team board) ---------- */
+  .listB { display:flex; flex-direction:column; gap:10px; }
+  .teamB { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:10px 12px; }
+  .headB { display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin-bottom:6px; }
+  .bodyB { display:grid; grid-template-columns:auto minmax(0,1fr); gap:0 14px; }
+  .lfB { display:grid; grid-template-columns:repeat(2, 84px); gap:0 6px; padding-right:14px; border-right:1px solid var(--line); }
+  .subsB { display:grid; grid-template-columns:repeat(5, minmax(0,1fr)); gap:0 6px; }
+  .lab { font-size:10px; font-weight:800; letter-spacing:.12em; text-align:center; color:var(--dim); height:14px; }
+  .lab.l { color:var(--lead); } .lab.f { color:var(--friend); }
+  .subsB .lab { grid-column:1 / -1; text-align:left; }
+  @media (max-width:700px) {
+    .bodyB { grid-template-columns:1fr; }
+    .lfB { border-right:0; border-bottom:1px solid var(--line); padding:0 0 6px; margin-bottom:6px; justify-content:center; }
+    .subsB .pn { font-size:10px; }
+  }
+  @media (max-width:420px) { .subsB .dkt { --w:min(50px, 100%); } .subsB .tag { font-size:8px; padding:0 4px; } }
+
+  /* ---------- C: compact list, tap to open ---------- */
+  .listC { display:flex; flex-direction:column; gap:8px; }
+  .teamC { background:var(--card); border:1px solid var(--line); border-radius:12px; }
+  .teamC > summary { list-style:none; cursor:pointer; display:grid; grid-template-columns:auto minmax(0,1fr) auto; gap:10px; align-items:center; padding:8px 12px; }
+  .teamC > summary::-webkit-details-marker { display:none; }
+  .icons { display:flex; gap:2px; align-items:center; }
+  .icons .dkt { --w:40px; margin:8px 3px 4px; }
+  .icons .gap { width:1px; height:34px; background:var(--line); margin:0 5px; }
+  .icons .ring { border-radius:8px; padding:0 1px; }
+  .icons .ring.pick { box-shadow:inset 0 -3px 0 var(--accent); } .icons .ring.own { box-shadow:inset 0 -3px 0 var(--ok); }
+  .sumC { font-size:13px; color:var(--dim); min-width:0; } .sumC b { color:var(--text); } .sumC .bad { color:#ff9b8f; }
+  .chev { color:var(--dim); font-size:12px; transition:transform .15s; } .teamC[open] .chev { transform:rotate(90deg); }
+  .teamC .rowA { padding:0 12px 8px; }
+  @media (max-width:640px) {
+    .teamC > summary { grid-template-columns:minmax(0,1fr) auto; }
+    .teamC > summary .icons { grid-column:1 / -1; }
+    .icons .dkt { --w:34px; margin:7px 2px 3px; } .icons .gap { margin:0 3px; }
+  }
+  @media (max-width:380px) { .icons .dkt { --w:30px; } }
+</style>
+</head>
+<body>
+<main>
+  <h1>Mockups: <span>Teams that cleared Festival of Battles</span></h1>
+  <p class="note">Your real data: your 3 picks and your 13-unit box. Pick A, B or C (or mix: "A, but with the chips of B").</p>
+  <div class="now"><b>What's wrong in the current version</b>
+    <ul>
+      <li>The "L" and "F" labels sit above the leader and friend, so those two cards are lower than the five subs.</li>
+      <li>The ⓘ buttons cover the type badges in the top-right corner of every card.</li>
+      <li>Names wrap to 1–4 lines, so the YOUR PICK / OWNED tags end up at different heights.</li>
+      <li>Missing units aren't marked, and each team is about 300 px tall: three teams fill the screen.</li>
+    </ul>
+  </div>
+
+  <section class="opt" id="A">
+    <h2>A · One line-up per team</h2>
+    <p class="why">Seven cards on one aligned row: leader, the five subs, friend, split by thin lines. The L/F badge sits on the card's free top-left corner, so every card starts at the same height. Names are two lines at most and the tags share one row. No ⓘ: tap a card for its details. On the phone the names hide and the tags become coloured dots.</p>
+    <div id="outA"></div>
+  </section>
+
+  <section class="opt" id="B">
+    <h2>B · Leader and friend, then the subs</h2>
+    <p class="why">Same layout as your team board: LEADER and FRIEND on the left, the five subs on the right, with one-word chips on top (your picks, what you own, what's missing). On the phone, leader and friend go on top and the subs below.</p>
+    <div id="outB"></div>
+  </section>
+
+  <section class="opt" id="C">
+    <h2>C · Compact list, tap to open</h2>
+    <p class="why">Each team is one line: seven small cards (a gold or green underline for your picks and owned units) and a one-line summary. Tap a line to open it into option A's view. All five teams fit on one screen.</p>
+    <div id="outC"></div>
+  </section>
+</main>
+<script>
+const DATA = {"event":"Challenge the Limits! Festival of Battles","total":155,"snapshot":"2026-11-21","source":"https://dokkan.game-db.org/db/battle_festival/","teams":[{"count":1,"last":"2025-09-17","usesPicks":2,"have":5,"leader":{"id":"1030481","name":"Super Saiyan Vegeta (Angel) + Super Saiyan Goku (Angel)","title":"Unprecedented Miracle","rarity":"LR","cls":"Super","type":"AGL","pick":false,"owned":true},"subs":[{"id":"1031921","name":"Broly (Wrathful)","title":"Relentlessly Surging Power","rarity":"LR","cls":"Extreme","type":"TEQ","pick":true,"owned":true},{"id":"1029571","name":"Vegeta","title":"Decisive Strike of Rebellion","rarity":"UR","cls":"Extreme","type":"AGL","pick":false,"owned":false},{"id":"1021671","name":"Legendary Super Saiyan Broly","title":"Instinctive Destruction","rarity":"UR","cls":"Extreme","type":"INT","pick":true,"owned":true},{"id":"1022421","name":"Super Saiyan 4 Goku & Super Saiyan 4 Vegeta","title":"Saiyan Warriors with Ultimate Power","rarity":"LR","cls":"Super","type":"PHY","pick":false,"owned":true},{"id":"1030431","name":"Super Saiyan Goku + Super Saiyan Vegeta (Angel)","title":"Incomparable Radiance","rarity":"LR","cls":"Super","type":"TEQ","pick":false,"owned":true}],"friend":{"id":"1030481","name":"Super Saiyan Vegeta (Angel) + Super Saiyan Goku (Angel)","title":"Unprecedented Miracle","rarity":"LR","cls":"Super","type":"AGL","pick":false,"owned":true}},{"count":1,"last":"2025-09-13","usesPicks":2,"have":5,"leader":{"id":"1030481","name":"Super Saiyan Vegeta (Angel) + Super Saiyan Goku (Angel)","title":"Unprecedented Miracle","rarity":"LR","cls":"Super","type":"AGL","pick":false,"owned":true},"subs":[{"id":"1030431","name":"Super Saiyan Goku + Super Saiyan Vegeta (Angel)","title":"Incomparable Radiance","rarity":"LR","cls":"Super","type":"TEQ","pick":false,"owned":true},{"id":"1022421","name":"Super Saiyan 4 Goku & Super Saiyan 4 Vegeta","title":"Saiyan Warriors with Ultimate Power","rarity":"LR","cls":"Super","type":"PHY","pick":false,"owned":true},{"id":"1031921","name":"Broly (Wrathful)","title":"Relentlessly Surging Power","rarity":"LR","cls":"Extreme","type":"TEQ","pick":true,"owned":true},{"id":"1029571","name":"Vegeta","title":"Decisive Strike of Rebellion","rarity":"UR","cls":"Extreme","type":"AGL","pick":false,"owned":false},{"id":"1021671","name":"Legendary Super Saiyan Broly","title":"Instinctive Destruction","rarity":"UR","cls":"Extreme","type":"INT","pick":true,"owned":true}],"friend":{"id":"1030431","name":"Super Saiyan Goku + Super Saiyan Vegeta (Angel)","title":"Incomparable Radiance","rarity":"LR","cls":"Super","type":"TEQ","pick":false,"owned":true}},{"count":1,"last":"2026-08-14","usesPicks":2,"have":2,"leader":{"id":"1031121","name":"Hit","title":"Counterattack in the Form of Improvement","rarity":"UR","cls":"Extreme","type":"INT","pick":false,"owned":false},"subs":[{"id":"1031921","name":"Broly (Wrathful)","title":"Relentlessly Surging Power","rarity":"LR","cls":"Extreme","type":"TEQ","pick":true,"owned":true},{"id":"1032311","name":"Third Eye Gomah","title":"Threat of the Third Eye","rarity":"LR","cls":"Extreme","type":"AGL","pick":true,"owned":true},{"id":"1031391","name":"Super Saiyan God SS Goku + Super Saiyan God SS Vegeta","title":"Furious Final Battle in the Future","rarity":"LR","cls":"Super","type":"STR","pick":false,"owned":false},{"id":"1009331","name":"Super Saiyan God SS Vegito","title":"Azure Omnipotence","rarity":"UR","cls":"Super","type":"PHY","pick":false,"owned":false},{"id":"1026251","name":"Super Saiyan God Goku","title":"Fighter Entrusted with Allies' Wishes","rarity":"UR","cls":"Super","type":"PHY","pick":false,"owned":false}],"friend":{"id":"1031121","name":"Hit","title":"Counterattack in the Form of Improvement","rarity":"UR","cls":"Extreme","type":"INT","pick":false,"owned":false}},{"count":1,"last":"2025-10-12","usesPicks":2,"have":2,"leader":{"id":"1031921","name":"Broly (Wrathful)","title":"Relentlessly Surging Power","rarity":"LR","cls":"Extreme","type":"TEQ","pick":true,"owned":true},"subs":[{"id":"1021141","name":"Super Saiyan 2 Gohan (Youth)","title":"Earth-Protecting Flash","rarity":"LR","cls":"Super","type":"TEQ","pick":false,"owned":false},{"id":"1031391","name":"Super Saiyan God SS Goku + Super Saiyan God SS Vegeta","title":"Furious Final Battle in the Future","rarity":"LR","cls":"Super","type":"STR","pick":false,"owned":false},{"id":"1022631","name":"Super Saiyan Goku","title":"Strike of Full Anger","rarity":"LR","cls":"Super","type":"INT","pick":false,"owned":false},{"id":"1022751","name":"Frieza (Full Power)","title":"Roar of Resentment","rarity":"LR","cls":"Extreme","type":"AGL","pick":false,"owned":false},{"id":"1021671","name":"Legendary Super Saiyan Broly","title":"Instinctive Destruction","rarity":"UR","cls":"Extreme","type":"INT","pick":true,"owned":true}],"friend":{"id":"1031921","name":"Broly (Wrathful)","title":"Relentlessly Surging Power","rarity":"LR","cls":"Extreme","type":"TEQ","pick":true,"owned":true}},{"count":1,"last":"2026-04-27","usesPicks":1,"have":4,"leader":{"id":"1030481","name":"Super Saiyan Vegeta (Angel) + Super Saiyan Goku (Angel)","title":"Unprecedented Miracle","rarity":"LR","cls":"Super","type":"AGL","pick":false,"owned":true},"subs":[{"id":"1030431","name":"Super Saiyan Goku + Super Saiyan Vegeta (Angel)","title":"Incomparable Radiance","rarity":"LR","cls":"Super","type":"TEQ","pick":false,"owned":true},{"id":"1031921","name":"Broly (Wrathful)","title":"Relentlessly Surging Power","rarity":"LR","cls":"Extreme","type":"TEQ","pick":true,"owned":true},{"id":"1022421","name":"Super Saiyan 4 Goku & Super Saiyan 4 Vegeta","title":"Saiyan Warriors with Ultimate Power","rarity":"LR","cls":"Super","type":"PHY","pick":false,"owned":true},{"id":"1031391","name":"Super Saiyan God SS Goku + Super Saiyan God SS Vegeta","title":"Furious Final Battle in the Future","rarity":"LR","cls":"Super","type":"STR","pick":false,"owned":false},{"id":"1022381","name":"Super Saiyan God Goku & Super Saiyan God Vegeta","title":"Divine Warriors with Infinite Power","rarity":"LR","cls":"Super","type":"TEQ","pick":false,"owned":false}],"friend":{"id":"1030481","name":"Super Saiyan Vegeta (Angel) + Super Saiyan Goku (Angel)","title":"Unprecedented Miracle","rarity":"LR","cls":"Super","type":"AGL","pick":false,"owned":true}}]};
+const A = 'http://localhost:5177/art/';
+const TYPES = ['AGL', 'TEQ', 'INT', 'STR', 'PHY'], RARE = { LR: 5, UR: 4, SSR: 3 };
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+function dkt(u, badge) {
+  const t = Math.max(0, TYPES.indexOf(u.type)), el = (u.cls === 'Extreme' ? 20 : 10) + t, r = RARE[u.rarity] || 3;
+  const img = String(u.id).replace(/\D/g, '').slice(0, -1) + '0';
+  const im = (c, s) => `<img class="${c}" src="${s}" alt="" loading="lazy" onerror="this.remove()">`;
+  return `<span class="dkt t${t}">` + im('fr', `${A}frame/${t * 10 + r}`) + im('ch', `${A}thumb/${img}`) + im(r === 3 ? 'ra ssr' : 'ra', `${A}rare/${r}`) + im('ty', `${A}type/${el}`)
+    + (badge ? `<span class="badge ${badge}">${badge}</span>` : '') + '</span>';
+}
+const status = u => u.pick ? 'pick' : u.owned ? 'own' : 'miss';
+const tagOf = u => ({ pick: '<span class="tag pick">YOUR PICK</span>', own: '<span class="tag own">OWNED</span>', miss: '<span class="tag miss">MISSING</span>' })[status(u)];
+const card = (u, badge) => `<div class="pc" title="${esc(u.title ? u.title + ' - ' : '')}${esc(u.name)} (tap for details)">${dkt(u, badge)}<div class="pn">${esc(u.name)}</div><div class="pt">${tagOf(u)}</div></div>`;
+const missing = t => t.subs.concat([t.leader]).filter(u => !u.owned && !u.pick).map(u => u.name);
+// one missing unit: its name; several: the count (the red MISSING tags show which)
+const missChip = t => { const m = missing(t); return !m.length ? '' : `<span class="chip bad" title="${esc(m.join(', '))}">missing <b>${m.length === 1 ? esc(m[0]) : m.length}</b></span>`; };
+const clears = t => `${t.count} clear${t.count > 1 ? 's' : ''}, last ${t.last}`;
+const picksTotal = 3;
+const src = `<p class="note src">${DATA.total} teams players posted after clearing it (<a href="${esc(DATA.source)}" target="_blank" rel="noopener">dokkan.game-db.org</a>, JP board, snapshot ${DATA.snapshot}). Closest to your picks first. F = friend: borrowed, so it may repeat a sub.</p>`;
+const rowA = t => `<div class="rowA">${card(t.leader, 'L')}<div class="sep"></div>${t.subs.map(u => card(u)).join('')}<div class="sep"></div>${card(t.friend, 'F')}</div>`;
+
+// A
+const teamA = t => `<div class="teamA"><div class="headA">
+    <span class="chip"><b>${t.usesPicks}/${picksTotal}</b> of your picks</span>
+    <span class="chip ${t.have === 6 ? 'ok' : ''}">you own <b>${t.have}/6</b></span>
+    ${missChip(t)}
+    <span class="when">${clears(t)}</span></div>${rowA(t)}</div>`;
+document.getElementById('outA').innerHTML = `<h3>✅ Teams that cleared Festival of Battles</h3>${src}
+  <div class="listA">${DATA.teams.slice(0, 3).map(teamA).join('')}</div>
+  <details><summary class="more">Show ${DATA.teams.length - 3} more cleared teams</summary><div class="listA" style="margin-top:10px">${DATA.teams.slice(3).map(teamA).join('')}</div></details>`;
+
+// B
+const teamB = t => `<div class="teamB"><div class="headB">
+    <span class="chip"><b>${t.usesPicks}/${picksTotal}</b> of your picks</span>
+    <span class="chip ${t.have === 6 ? 'ok' : ''}">you own <b>${t.have}/6</b></span>
+    ${missChip(t)}
+    <span class="chip">${clears(t)}</span></div>
+  <div class="bodyB"><div class="lfB"><div><div class="lab l">LEADER</div>${card(t.leader)}</div><div><div class="lab f">FRIEND</div>${card(t.friend)}</div></div>
+    <div class="subsB"><div class="lab">SUBS</div>${t.subs.map(u => card(u)).join('')}</div></div></div>`;
+document.getElementById('outB').innerHTML = `<h3>✅ Teams that cleared Festival of Battles</h3>${src}
+  <div class="listB">${DATA.teams.slice(0, 3).map(teamB).join('')}</div>
+  <details><summary class="more">Show ${DATA.teams.length - 3} more cleared teams</summary><div class="listB" style="margin-top:10px">${DATA.teams.slice(3).map(teamB).join('')}</div></details>`;
+
+// C
+const mini = (u, badge) => `<span class="ring ${status(u)}" title="${esc(u.name)}">${dkt(u, badge)}</span>`;
+const teamC = (t, i) => `<details class="teamC"${i === 0 ? ' open' : ''}><summary>
+    <span class="icons">${mini(t.leader, 'L')}<span class="gap"></span>${t.subs.map(u => mini(u)).join('')}<span class="gap"></span>${mini(t.friend, 'F')}</span>
+    <span class="sumC"><b>${t.usesPicks}/${picksTotal}</b> of your picks · you own <b>${t.have}/6</b>${missing(t).length ? ` · <span class="bad">missing ${missing(t).length === 1 ? esc(missing(t)[0]) : missing(t).length}</span>` : ''}<br>${clears(t)}</span>
+    <span class="chev">▶</span></summary>${rowA(t)}</details>`;
+document.getElementById('outC').innerHTML = `<h3>✅ Teams that cleared Festival of Battles</h3>${src}
+  <div class="listC">${DATA.teams.map(teamC).join('')}</div>`;
+</script>
+</body>
+</html>

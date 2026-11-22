@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mockup: unit menu, replace, details</title>
+<style>
+  :root { --bg:#111317; --card:#1b1e24; --card2:#22262e; --line:#2c3038; --text:#e8e8ea; --dim:#9aa0aa; --accent:#f0a030; --ok:#4cc38a; --miss:#e5645a;
+          --dk-agl:#0579e3; --dk-teq:#22a139; --dk-int:#aa46c3; --dk-str:#c72126; --dk-phy:#bd7204; --lead:#e3b23c; --friend:#8e6be8; --atk:#2f7fd6; --stack:#7b5cff; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font:15px/1.45 system-ui, sans-serif; }
+  main { max-width:1220px; margin:0 auto; padding:16px; }
+  h1 { font-size:22px; margin:4px 0 6px; } h1 span { color:var(--accent); }
+  .note { color:var(--dim); font-size:13px; }
+  .flow { display:flex; gap:22px; flex-wrap:wrap; justify-content:center; margin-top:18px; }
+  .step { width:375px; max-width:100%; }
+  .step > h3 { font-size:14px; margin:0 0 6px; color:var(--accent); } .step > p { font-size:12px; color:var(--dim); margin:0 0 8px; min-height:52px; }
+  .screen { position:relative; height:720px; border:1px solid #3a3f49; border-radius:18px; overflow:hidden; background:var(--bg); }
+
+  /* frame */
+  .dkt { position:relative; display:block; width:var(--w, 60px); aspect-ratio:1; flex:none; }
+  .dkt.t0 { --el:var(--dk-agl); } .dkt.t1 { --el:var(--dk-teq); } .dkt.t2 { --el:var(--dk-int); } .dkt.t3 { --el:var(--dk-str); } .dkt.t4 { --el:var(--dk-phy); }
+  .dkt img { position:absolute; display:block; }
+  .dkt .fr { position:relative; width:100%; height:100%; object-fit:contain; filter:drop-shadow(0 0 5px var(--el)); }
+  .dkt .ch { width:125.5%; top:-17.5%; left:50%; transform:translateX(-50%); }
+  .dkt .ra { left:-22%; bottom:-7%; width:70%; } .dkt .ty { top:-17%; right:-15%; width:43%; }
+  .tag { display:inline-block; font-size:9.5px; font-weight:700; padding:0 6px; border-radius:6px; white-space:nowrap; }
+  .tag.pick { background:var(--accent); color:#111; } .tag.miss { background:var(--miss); color:#111; } .tag.stack { background:var(--stack); color:#fff; } .tag.own { background:var(--ok); color:#111; }
+  .chip { font-size:10px; font-weight:700; padding:0 5px; border-radius:4px; white-space:nowrap; }
+  .chip.l { background:var(--lead); color:#111; } .chip.f { background:var(--friend); color:#fff; } .chip.a { background:var(--atk); color:#fff; } .chip.d { background:#2b5f9e; color:#fff; }
+  .chips { display:flex; gap:3px; justify-content:center; flex-wrap:wrap; margin-top:2px; }
+
+  /* 1: map + action menu */
+  .map { display:grid; grid-template-columns:repeat(3,1fr); row-gap:6px; padding:18px 6px; }
+  .u { text-align:center; font-size:10px; } .u .dkt { margin:10px auto 4px; --w:54px; } .u .nm { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .u.sel .dkt::after { content:''; position:absolute; inset:-5px; border:2px solid #fff; border-radius:10px; }
+  .dimmed { opacity:.35; }
+  .menu { position:absolute; left:120px; top:132px; width:230px; background:#262a33; border:1px solid #474d59; border-radius:14px; box-shadow:0 14px 40px #000c; overflow:hidden; z-index:3; }
+  .menu .mh { display:flex; gap:10px; align-items:center; padding:10px 12px; border-bottom:1px solid #3a3f49; }
+  .menu .mh .dkt { --w:38px; margin:4px 2px 0 4px; }
+  .menu .mh b { font-size:13px; display:block; line-height:1.2; } .menu .mh span { font-size:11px; color:var(--dim); }
+  .mi { display:flex; gap:10px; align-items:center; padding:10px 14px; font-size:14px; border-bottom:1px solid #30353f; }
+  .mi i { font-style:normal; width:20px; text-align:center; }
+  .mi.hot { background:#e5645a22; color:#ff8a80; font-weight:700; }
+  .mi small { margin-left:auto; color:var(--dim); font-size:11px; }
+
+  /* 2: replace picker */
+  .top { display:flex; align-items:center; justify-content:space-between; padding:12px 14px; background:linear-gradient(90deg,#2a2016,#1b1e24); border-bottom:1px solid #3a3f49; }
+  .top b { font-size:16px; letter-spacing:.04em; } .close { background:var(--miss); color:#111; font-weight:800; font-size:12px; border-radius:8px; padding:4px 10px; }
+  .replacing { display:flex; gap:10px; align-items:center; padding:10px 14px; font-size:12px; color:var(--dim); border-bottom:1px solid var(--line); }
+  .replacing .dkt { --w:34px; margin-top:4px; }
+  .seg { display:flex; gap:6px; padding:10px 14px 0; } .seg span { flex:1; text-align:center; font-size:12px; padding:6px 0; border-radius:8px; background:var(--card); border:1px solid var(--line); color:var(--dim); }
+  .seg span.on { border-color:var(--accent); color:var(--accent); font-weight:700; background:#f0a03014; }
+  .search { margin:10px 14px 0; padding:9px 12px; border-radius:10px; background:var(--card); border:1px solid var(--line); color:var(--dim); font-size:13px; }
+  .boxf { display:flex; gap:6px; align-items:center; padding:8px 14px; font-size:11px; color:var(--dim); }
+  .boxf span { padding:2px 9px; border-radius:999px; border:1px solid var(--line); } .boxf span.on { background:var(--accent); color:#111; border-color:var(--accent); font-weight:700; }
+  .cands { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px 4px; padding:4px 8px 14px; overflow-y:auto; overflow-x:hidden; height:470px; }
+  .cand .chip { font-size:9px; padding:0 3px; }
+  .cand { text-align:center; font-size:10px; border-radius:10px; padding:2px 0 6px; } .cand .dkt { --w:58px; margin:10px auto 6px; }
+  .cand.cur { background:#ffffff0a; outline:1px dashed #555; } .cand .nm { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding:0 2px; }
+  .cand.best .dkt::after { content:'BEST'; position:absolute; left:50%; transform:translateX(-50%); top:-14px; font-size:9px; font-weight:800; background:var(--ok); color:#111; border-radius:5px; padding:0 5px; }
+
+  /* 3: details (tinted by type) */
+  .det { --tint:var(--dk-teq); background:radial-gradient(120% 60% at 50% 0%, color-mix(in srgb, var(--tint) 30%, #111317) 0%, #111317 70%); height:100%; overflow:auto; }
+  .det .top { background:linear-gradient(90deg, color-mix(in srgb, var(--tint) 35%, #16181d), #16181d); }
+  .hero { display:flex; gap:14px; align-items:center; margin:14px; padding:12px; border-radius:14px; border:1px solid color-mix(in srgb, var(--tint) 60%, transparent);
+          background:linear-gradient(135deg, color-mix(in srgb, var(--tint) 28%, #16181d), #16181d 70%); }
+  .hero .dkt { --w:72px; margin-top:6px; } .hero b { font-size:17px; display:block; line-height:1.2; } .hero .s { font-size:12px; color:var(--dim); }
+  .acts { display:flex; gap:6px; margin:0 14px 6px; }
+  .acts span { flex:1; text-align:center; font-size:12px; font-weight:700; padding:8px 4px; border-radius:10px; border:1px solid var(--line); background:var(--card); }
+  .acts span.danger { background:#e5645a; color:#111; border-color:#e5645a; }
+  .sec { margin:14px; } .sec h4 { margin:0 0 6px; font-size:15px; color:color-mix(in srgb, var(--tint) 70%, #fff); }
+  .panel { border:1px solid color-mix(in srgb, var(--tint) 40%, var(--line)); border-radius:12px; overflow:hidden; background:#16181dcc; font-size:12.5px; }
+  .panel .pad { padding:10px 12px; }
+  .band { padding:6px 12px; font-weight:700; font-size:12px; color:color-mix(in srgb, var(--tint) 65%, #fff); background:color-mix(in srgb, var(--tint) 16%, #16181d); border-top:1px solid color-mix(in srgb, var(--tint) 30%, var(--line)); }
+  .band:first-child { border-top:0; }
+  .lines { padding:6px 12px 8px; } .lines div { padding:2px 0; } .lines div::before { content:'• '; color:var(--dim); }
+  .up { color:#4cd964; font-weight:800; } .inf { display:inline-block; font-size:9px; font-weight:800; background:var(--stack); color:#fff; border-radius:4px; padding:0 4px; margin-left:4px; }
+  .cats { display:flex; gap:4px; flex-wrap:wrap; } .cats span { background:#ffffff10; border-radius:6px; padding:1px 7px; font-size:11.5px; } .cats span.hit { background:#e3b23c33; color:var(--lead); }
+  .lk { display:flex; justify-content:space-between; gap:8px; padding:3px 0; border-bottom:1px dashed #ffffff12; } .lk:last-child { border:0; }
+  .lk.off { color:var(--dim); } .lk i { font-style:normal; color:var(--dim); font-size:11px; text-align:right; }
+  .pc { margin-top:30px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Dokkan <span>Team Builder</span>: unit menu → replace → details</h1>
+  <p class="note">Modelled on how DokkanStats does it: tap a unit for a short action menu, then a full-screen picker to replace it or a full-screen details page. Shown at phone size. On PC and the unfolded Fold the picker and the details open as a centred window (about 720 px wide) over the map. All numbers below are real, from your Festival team (Angel Goku &amp; Vegeta leading).</p>
+
+  <div class="flow">
+    <div class="step"><h3>1 · Tap a unit</h3><p>A short menu next to the unit. <b>I don't have it</b> is its own red row, so it can't get lost. On your picks the menu shows "Remove from tray" instead; on the friend, just Details.</p>
+      <div class="screen"><div class="map" id="map"></div>
+        <div class="menu"><div class="mh" id="mh"></div>
+          <div class="mi"><i>🔍</i>Details</div>
+          <div class="mi"><i>⇄</i>Replace…<small>9 fit</small></div>
+          <div class="mi hot"><i>✕</i>I don't have it<small>auto-pick</small></div>
+          <div class="mi"><i>♛</i>Make leader</div>
+        </div></div></div>
+
+    <div class="step"><h3>2 · Replace…</h3><p>Full-screen picker. Each card shows what it would get <b>in that slot</b>: leader boost and link ⚔/🛡 after the rotation is re-arranged. "Smart" sorts by that; "My box" shows only units you own.</p>
+      <div class="screen">
+        <div class="top"><b>REPLACE UNIT</b><span class="close">CLOSE</span></div>
+        <div class="replacing" id="rep"></div>
+        <div class="seg"><span class="on">Smart</span><span>My box</span><span>Stackers</span></div>
+        <div class="search">🔍  Search any unit…</div>
+        <div class="boxf">My box: <span class="on">All</span><span>Owned first</span><span>Owned only</span></div>
+        <div class="cands" id="cands"></div>
+      </div></div>
+
+    <div class="step"><h3>3 · Details</h3><p>Full-screen unit page tinted in its type colour: the actions on top, then leader skill, super attack, passive in banded sections (▲ = raises, <span class="inf">∞ STACK</span> = keeps climbing), categories and links.</p>
+      <div class="screen"><div class="det">
+        <div class="top"><b>UNIT DETAILS</b><span class="close">CLOSE</span></div>
+        <div class="hero" id="hero"></div>
+        <div class="acts"><span>⇄ Replace</span><span class="danger">✕ I don't have it</span></div>
+        <div class="sec"><h4>Leader Skill</h4><div class="panel"><div class="pad"><b style="color:var(--lead)">Exploding Rage</b> Category Ki +4 and HP, ATK &amp; DEF +220%</div></div></div>
+        <div class="sec"><h4>Super Attack · Anger Shout</h4><div class="panel"><div class="pad">Raises ATK &amp; DEF <span class="up">▲</span><span class="inf">∞ STACK</span> and causes mega-colossal damage to enemy</div></div></div>
+        <div class="sec"><h4>Passive · Terrifying Surge of Ki</h4><div class="panel" id="passive"></div></div>
+        <div class="sec"><h4>Links <span class="note" style="font-weight:400">· max level · bright = active in this team</span></h4><div class="panel"><div class="pad" id="links"></div></div></div>
+        <div class="sec"><h4>Categories <span class="note" style="font-weight:400">· gold = boosted by your leader</span></h4><div class="cats" id="cats"></div></div>
+      </div></div></div>
+  </div>
+</main>
+<script>
+const A = 'http://localhost:5177/art/';
+const dkt = (u, w) => { const r = u.r === 'LR' ? 5 : 4, el = (u.cls === 'Extreme' ? 20 : 10) + u.t, img = u.id.slice(0, -1) + '0';
+  return `<span class="dkt t${u.t}"${w ? ` style="--w:${w}px"` : ''}><img class="fr" src="${A}frame/${u.t * 10 + r}"><img class="ch" src="${A}thumb/${img}"><img class="ra" src="${A}rare/${r}"><img class="ty" src="${A}type/${el}"></span>`; };
+const T = { AGL: 0, TEQ: 1, INT: 2, STR: 3, PHY: 4 };
+const u = (id, r, cls, type, name) => ({ id, r, cls, t: T[type], name });
+
+// 1: the team map (real arrangement), SSJ Goku selected
+const TEAM = [
+  [u('1030481', 'LR', 'Super', 'AGL', 'SSJ Vegeta (Angel) + SSJ Goku (Angel)'), 'miss'],
+  [u('1018491', 'LR', 'Super', 'AGL', 'Super Saiyan Goku'), 'miss', 'sel'],
+  [u('1021671', 'UR', 'Extreme', 'INT', 'Legendary Super Saiyan Broly'), 'pick'],
+  [u('1028491', 'UR', 'Extreme', 'TEQ', 'Vegeta'), 'miss'],
+  [u('1032311', 'LR', 'Extreme', 'AGL', 'Third Eye Gomah'), 'pick'],
+  [u('1031921', 'LR', 'Extreme', 'TEQ', 'Broly (Wrathful)'), 'pick'],
+];
+const tagTxt = { miss: 'MISSING', pick: 'YOUR PICK' };
+document.getElementById('map').innerHTML = [0, 1, 2, null, null, 3, 4, 5, 0].map(i => i === null ? '<div></div>' :
+  `<div class="u ${TEAM[i][2] || 'dimmed'}">${dkt(TEAM[i][0])}<span class="tag ${TEAM[i][1]}">${tagTxt[TEAM[i][1]]}</span><div class="nm">${TEAM[i][0].name}</div></div>`).join('');
+document.getElementById('mh').innerHTML = dkt(TEAM[1][0], 38) + '<div><b>Super Saiyan Goku</b><span>Miracle-Making Super Saiyan · MISSING</span></div>';
+
+// 2: real swap-in previews for SSJ Goku's slot
+const C = [
+  [u('1018491', 'LR', 'Super', 'AGL', 'Super Saiyan Goku'), 170, 80, 5, 'cur'],
+  [u('1028021', 'LR', 'Extreme', 'AGL', 'Super Saiyan Broly'), 220, 100, 10, 'best'],
+  [u('1020221', 'LR', 'Super', 'PHY', 'SSJ2 Vegeta (Angel)'), 220, 80, 0],
+  [u('1022191', 'LR', 'Super', 'TEQ', 'Goku (Angel) & Vegeta (Angel)'), 220, 70, 10],
+  [u('1034201', 'LR', 'Super', 'INT', 'Super Saiyan 3 Goku'), 170, 65, 5],
+  [u('1030571', 'LR', 'Super', 'STR', 'SSGSS Evolved Vegeta'), 220, 60, 5],
+  [u('1032581', 'LR', 'Super', 'TEQ', 'SSJ3 Vegeta (DAIMA)'), 220, 55, 5],
+  [u('1022381', 'LR', 'Super', 'TEQ', 'SSG Goku & SSG Vegeta'), 220, 55, 5],
+  [u('1022831', 'UR', 'Super', 'TEQ', 'Caulifla & Kale'), 170, 40, 10],
+];
+document.getElementById('rep').innerHTML = dkt(C[0][0], 34) + '<div>Replacing <b style="color:var(--text)">Super Saiyan Goku</b> · leader stays Angel Goku &amp; Vegeta</div>';
+document.getElementById('cands').innerHTML = C.map(([c, l, a, d, k]) => `<div class="cand ${k || ''}">${dkt(c)}
+  <div class="chips">${k === 'cur' ? '<span class="tag miss">CURRENT</span>' : ''}<span class="tag stack">STACK</span></div>
+  <div class="nm">${c.name}</div><div class="chips"><span class="chip l">L ${l}%</span><span class="chip f">F ${l}%</span></div>
+  <div class="chips"><span class="chip a">⚔ ${a}%</span><span class="chip d">🛡 ${d}%</span></div></div>`).join('');
+
+// 3: Broly (Wrathful) details, real data
+document.getElementById('hero').innerHTML = dkt(u('1031921', 'LR', 'Extreme', 'TEQ', ''), 72) +
+  `<div><b>Broly (Wrathful)</b><div class="s">Relentlessly Surging Power · LR Extreme TEQ · 12 Sep 2025</div>
+   <div class="chips" style="justify-content:flex-start;margin-top:6px"><span class="tag pick">YOUR PICK</span><span class="tag stack">STACK</span><span class="chip l">L 220%</span><span class="chip a">⚔ 95%</span><span class="chip d">🛡 5%</span></div></div>`;
+const P = [
+  ['Upon entry (Entrance Animation)', ['Ki +4 and damage reduction rate 40% ▲ for 1 turn', 'Ki +3 and damage reduction rate 30% ▲ for 3 turns']],
+  ['Basic effect(s)', ['ATK & DEF 260% ▲', 'Guards all attacks']],
+  ['For every attack performed', ['Ki +1 (up to +5)', 'DEF 50% ▲ (up to 400%) ∞', 'Chance of performing a critical hit 20% ▲ (up to 100%)']],
+  ['For every attack received', ['Ki +1 (up to +5)', 'ATK 40% ▲ (up to 300%) ∞', 'Launches an additional attack that has a high chance of becoming a Super Attack (up to 4 times)']],
+  ['For every Super Attack the enemy launches at the character', ['ATK & DEF 30% ▲ ∞']],
+  ['When receiving an Unarmed Super Attack', ['Great chance of nullifying it, ATK 260% ▲ temporarily and countering with tremendous power']],
+];
+document.getElementById('passive').innerHTML = P.map(([c, l]) => `<div class="band">${c}</div><div class="lines">${l.map(x =>
+  `<div>${x.replace(/ ▲/g, ' <span class="up">▲</span>').replace(/ ∞$/, '<span class="inf">∞ STACK</span>')}</div>`).join('')}</div>`).join('');
+const LK = [['Saiyan Warrior Race', 'ATK +10%', 1], ['Prodigies', 'ATK +15%', 1], ['Berserker', 'ATK +30% when HP ≤ 50%', 1], ['Shocking Speed', 'Ki +2, DEF +5%', 0],
+  ['Prepared for Battle', 'Ki +2, ATK & DEF +5%', 1], ['Fierce Battle', 'ATK +20%', 1], ['Legendary Power', 'ATK +15% on Super Attack', 1]];
+document.getElementById('links').innerHTML = LK.map(([n, v, on]) => `<div class="lk ${on ? '' : 'off'}"><span>${n}</span><i>${v}</i></div>`).join('');
+document.getElementById('cats').innerHTML = ['Movie Bosses', 'Pure Saiyans', 'Exploding Rage', 'Rapid Growth', 'Giant Ape Power', 'Gifted Warriors', 'Super Bosses', 'Uncontrollable Power', 'Mission Execution']
+  .map(c => `<span class="${['Pure Saiyans', 'Gifted Warriors'].includes(c) ? 'hit' : ''}">${c}</span>`).join('');
+</script>
+</body>
+</html>

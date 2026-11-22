@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mockups: unit details</title>
+<style>
+  :root { --bg:#111317; --card:#1b1e24; --card2:#22262e; --line:#2c3038; --text:#e8e8ea; --dim:#9aa0aa; --accent:#f0a030; --ok:#4cc38a; --miss:#e5645a;
+          --dk-agl:#0579e3; --dk-teq:#22a139; --dk-int:#aa46c3; --dk-str:#c72126; --dk-phy:#bd7204; --lead:#e3b23c; --friend:#8e6be8; --atk:#2f7fd6; --stack:#7b5cff; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font:15px/1.45 system-ui, sans-serif; }
+  main { max-width:1180px; margin:0 auto; padding:16px; }
+  h1 { font-size:22px; margin:4px 0 6px; } h1 span { color:var(--accent); }
+  .note { color:var(--dim); font-size:13px; }
+  .opt { border:1px dashed #444; border-radius:14px; padding:14px; margin:22px 0 40px; }
+  .opt > h2 { margin:0 0 4px; font-size:18px; color:var(--accent); }
+  .opt > p.why { margin:0 0 14px; color:var(--dim); font-size:13px; }
+  .screens { display:flex; gap:18px; flex-wrap:wrap; align-items:flex-start; }
+  .screen { position:relative; border:1px solid #3a3f49; border-radius:14px; overflow:hidden; background:var(--bg); }
+  .screen .cap { position:absolute; top:6px; left:10px; font-size:10px; color:var(--dim); letter-spacing:.08em; text-transform:uppercase; z-index:5; }
+  .pc { width:760px; max-width:100%; height:640px; } .phone { width:375px; max-width:100%; height:740px; }
+
+  /* frame */
+  .dkt { position:relative; display:block; width:var(--w, 64px); aspect-ratio:1; flex:none; }
+  .dkt.t0 { --el:var(--dk-agl); } .dkt.t1 { --el:var(--dk-teq); } .dkt.t2 { --el:var(--dk-int); } .dkt.t3 { --el:var(--dk-str); } .dkt.t4 { --el:var(--dk-phy); }
+  .dkt img { position:absolute; display:block; }
+  .dkt .fr { position:relative; width:100%; height:100%; object-fit:contain; filter:drop-shadow(0 0 5px var(--el)); }
+  .dkt .ch { width:125.5%; top:-17.5%; left:50%; transform:translateX(-50%); }
+  .dkt .ra { left:-22%; bottom:-7%; width:70%; } .dkt .ty { top:-17%; right:-15%; width:43%; }
+
+  .tag { display:inline-block; font-size:10px; font-weight:700; padding:1px 7px; border-radius:6px; white-space:nowrap; }
+  .tag.pick { background:var(--accent); color:#111; } .tag.miss { background:var(--miss); color:#111; } .tag.stack { background:var(--stack); color:#fff; } .tag.own { background:var(--ok); color:#111; }
+  .chip { font-size:11px; font-weight:700; padding:1px 7px; border-radius:5px; white-space:nowrap; }
+  .chip.l { background:var(--lead); color:#111; } .chip.f { background:var(--friend); color:#fff; } .chip.a { background:var(--atk); color:#fff; } .chip.d { background:#2b5f9e; color:#fff; }
+  .row { display:flex; gap:6px; flex-wrap:wrap; align-items:center; }
+
+  /* faded page behind */
+  .behind { padding:30px 16px; opacity:.35; filter:saturate(.6); }
+  .behind .fake { height:90px; border-radius:12px; background:var(--card); margin-bottom:12px; }
+  .scrim { position:absolute; inset:0; background:#0009; z-index:2; }
+
+  /* ===== A: sheet ===== */
+  .sheet { position:absolute; z-index:3; background:var(--card); border:1px solid var(--line); display:flex; flex-direction:column; }
+  .pc .sheet { top:0; right:0; bottom:0; width:400px; border-radius:14px 0 0 14px; box-shadow:-10px 0 30px #0008; }
+  .phone .sheet { left:0; right:0; bottom:0; height:84%; border-radius:18px 18px 0 0; box-shadow:0 -10px 30px #0008; }
+  .grab { width:40px; height:4px; border-radius:2px; background:#555; margin:8px auto 0; }
+  .sh-head { display:flex; gap:14px; padding:18px 16px 10px; align-items:flex-start; }
+  .sh-head .who { min-width:0; flex:1; }
+  .sh-head .n { font-weight:800; font-size:16px; line-height:1.2; } .sh-head .ttl { color:var(--dim); font-size:12px; margin:2px 0 6px; }
+  .x { position:absolute; top:10px; right:12px; width:28px; height:28px; border-radius:50%; background:var(--card2); display:grid; place-items:center; color:var(--dim); }
+  .actions { display:flex; gap:8px; padding:0 16px 12px; border-bottom:1px solid var(--line); }
+  .btn { border:0; border-radius:10px; padding:10px 12px; font:inherit; font-weight:700; cursor:pointer; }
+  .btn.danger { background:var(--miss); color:#111; flex:1.3; } .btn.sec { background:var(--card2); color:var(--text); border:1px solid var(--line); flex:1; }
+  .tabs { display:flex; gap:4px; padding:10px 16px 0; }
+  .tabs span { padding:6px 12px; border-radius:8px 8px 0 0; font-size:13px; color:var(--dim); border-bottom:2px solid transparent; }
+  .tabs span.on { color:var(--text); border-color:var(--accent); font-weight:700; }
+  .sh-body { padding:12px 16px 20px; overflow:auto; flex:1; font-size:13px; }
+  .sec { margin-bottom:14px; } .sec h5 { margin:0 0 5px; font-size:11px; color:var(--dim); text-transform:uppercase; letter-spacing:.06em; }
+  .box { background:var(--card2); border:1px solid var(--line); border-radius:10px; padding:8px 10px; }
+  .ps { margin-top:6px; } .ps b { display:block; font-size:12px; color:var(--accent); }
+  .ps ul { margin:2px 0 0; padding-left:16px; } .ps li { margin:1px 0; }
+  .ps li.stk { color:#c9b8ff; } .ps li.stk::after { content:' ▲ stacks'; font-size:10px; color:var(--stack); font-weight:700; }
+  .cats { display:flex; gap:4px; flex-wrap:wrap; } .cats span { background:#ffffff10; border-radius:6px; padding:1px 7px; font-size:12px; }
+  .cats span.hit { background:#e3b23c33; color:var(--lead); }
+  .links div { display:flex; justify-content:space-between; gap:8px; padding:2px 0; border-bottom:1px dashed #ffffff10; }
+  .links div.on { color:var(--text); } .links div:not(.on) { color:var(--dim); }
+  .links i { font-style:normal; font-size:11px; color:var(--dim); }
+
+  /* ===== B: inline card + hover ===== */
+  .inline { background:var(--card); border:1px solid var(--line); border-radius:14px; display:grid; grid-template-columns:230px 1fr; gap:0; overflow:hidden; }
+  .inline .left { background:var(--card2); padding:14px; border-right:1px solid var(--line); display:flex; flex-direction:column; gap:10px; }
+  .inline .right { padding:12px 14px; font-size:13px; }
+  .acc { border-bottom:1px solid var(--line); padding:8px 0; } .acc summary { cursor:pointer; font-weight:700; }
+  .acc .cnt { color:var(--dim); font-weight:400; }
+  .hover { position:absolute; z-index:4; width:300px; background:#262a33; border:1px solid #444; border-radius:12px; padding:10px 12px; font-size:12px; box-shadow:0 10px 30px #000a; }
+  .hover::before { content:''; position:absolute; left:24px; top:-7px; width:12px; height:12px; background:#262a33; border-left:1px solid #444; border-top:1px solid #444; transform:rotate(45deg); }
+  .mini-map { display:flex; gap:22px; padding:30px 20px 10px; }
+  @media (max-width:820px) { .inline { grid-template-columns:1fr; } .inline .left { border-right:0; border-bottom:1px solid var(--line); } }
+</style>
+</head>
+<body>
+<main>
+  <h1>Dokkan <span>Team Builder</span>: unit details mockups</h1>
+  <p class="note">Static mockups with real data for Broly (Wrathful) in your Festival team. Either option opens for <b>any</b> unit: on the map, in search results, in "Also fits", in My box.</p>
+
+  <!-- ===================== A ===================== -->
+  <section class="opt">
+    <h2>Option A: Unit sheet (slides in)</h2>
+    <p class="why">Tap any unit and a sheet slides in: from the right on PC and the unfolded Fold, from the bottom on the phone. The two actions sit right under the name, big and always visible: <b>I don't have it</b> (red) and <b>Swap…</b>. Below, three tabs keep the rest tidy: <b>Details</b> (leader skill, super attack, passive with the stacking lines marked, categories, links at max level), <b>In this team</b> (who it links with), <b>Swap</b> (the swap-in grid). On PC, hovering a unit also shows a small preview without clicking.</p>
+    <div class="screens">
+      <div class="screen pc"><span class="cap">PC / Fold unfolded</span>
+        <div class="behind"><div class="fake"></div><div class="fake" style="height:260px"></div><div class="fake"></div></div>
+        <div class="scrim"></div>
+        <div class="sheet" data-sheet></div>
+      </div>
+      <div class="screen phone"><span class="cap">Phone / Fold folded</span>
+        <div class="behind"><div class="fake"></div><div class="fake" style="height:200px"></div></div>
+        <div class="scrim"></div>
+        <div class="sheet" data-sheet data-phone></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== B ===================== -->
+  <section class="opt">
+    <h2>Option B: Info card under the map + hover preview</h2>
+    <p class="why">No overlay: tapping a unit fills a two-column card under the map. Left: the unit and its actions as big buttons. Right: folding sections (Links in this team · Swap in · Full details), one open at a time. Hovering any unit (PC) pops a compact preview with the leader skill, super attack and stacking lines. Simpler, but on the phone the card is below the map, so you scroll down to it.</p>
+    <div class="screen" style="width:100%;max-width:980px">
+      <div class="mini-map" style="position:relative">
+        <div data-mini="0"></div><div data-mini="1"></div><div data-mini="2" style="outline:2px solid var(--text);outline-offset:4px;border-radius:10px"></div><div data-mini="3"></div><div data-mini="4"></div>
+        <div class="hover" style="left:150px;top:118px" data-hover></div>
+      </div>
+      <div style="height:150px"></div>
+      <div style="padding:0 14px 14px"><div class="inline" data-inline></div></div>
+    </div>
+  </section>
+</main>
+<script>
+const A = 'http://localhost:5177/art/';
+const U = { id:'1031921', name:'Broly (Wrathful)', title:'Relentlessly Surging Power', r:'LR', cls:'Extreme', t:1, type:'TEQ', release:'12 September 2025' };
+const dkt = (u, w) => { const r = u.r === 'LR' ? 5 : 4, el = (u.cls === 'Extreme' ? 20 : 10) + u.t, img = u.id.slice(0, -1) + '0';
+  return `<span class="dkt t${u.t}" style="--w:${w || 64}px"><img class="fr" src="${A}frame/${u.t * 10 + r}"><img class="ch" src="${A}thumb/${img}"><img class="ra" src="${A}rare/${r}"><img class="ty" src="${A}type/${el}"></span>`; };
+const MINI = [
+  { id:'1030481', r:'LR', cls:'Super', t:0 }, { id:'1032311', r:'LR', cls:'Extreme', t:0 }, U,
+  { id:'1021671', r:'UR', cls:'Extreme', t:2 }, { id:'1028491', r:'UR', cls:'Extreme', t:1 } ];
+document.querySelectorAll('[data-mini]').forEach(el => el.innerHTML = dkt(MINI[+el.dataset.mini], 70));
+
+const LEADER = '"Exploding Rage" Category Ki +4 and HP, ATK & DEF +220%';
+const SA = 'Anger Shout: Raises ATK & DEF and causes mega-colossal damage to enemy';
+const PASSIVE = [
+  ['Upon entry (Entrance Animation)', ['Ki +4 and damage reduction rate 40% for 1 turn', 'Ki +3 and damage reduction rate 30% for 3 turns']],
+  ['Basic effect(s)', ['ATK & DEF 260%', 'Guards all attacks']],
+  ['For every attack performed', ['Ki +1 (up to +5)', '*DEF 50% (up to 400%)', 'Chance of performing a critical hit 20% (up to 100%)']],
+  ['For every attack received', ['Ki +1 (up to +5)', '*ATK 40% (up to 300%)', 'Launches an additional attack that has a high chance of becoming a Super Attack (up to 4 times)']],
+  ['For every Super Attack the enemy launches at the character', ['*ATK & DEF 30%']],
+  ['When receiving an Unarmed Super Attack', ['Great chance of nullifying it, ATK 260% temporarily and countering with tremendous power']],
+];
+const CATS = ['Movie Bosses', 'Pure Saiyans', 'Exploding Rage', 'Rapid Growth', 'Giant Ape Power', 'Gifted Warriors', 'Super Bosses', 'Uncontrollable Power', 'Mission Execution'];
+const LINKS = [['Saiyan Warrior Race', 'ATK +10%', 1], ['Prodigies', 'ATK +15%', 1], ['Berserker', 'ATK +30% when HP is 50% or less', 1], ['Shocking Speed', 'Ki +2 and DEF +5%', 0],
+  ['Prepared for Battle', 'Ki +2 and ATK & DEF +5%', 1], ['Fierce Battle', 'ATK +20%', 1], ['Legendary Power', 'ATK +15% when performing a Super Attack', 1]];
+const passiveHTML = PASSIVE.map(([c, fx]) => `<div class="ps"><b>${c}</b><ul>${fx.map(f => f[0] === '*' ? `<li class="stk">${f.slice(1)}</li>` : `<li>${f}</li>`).join('')}</ul></div>`).join('');
+const head = (w) => `<div class="sh-head">${dkt(U, w)}<div class="who"><div class="n">${U.name}</div><div class="ttl">${U.title} · LR Extreme TEQ · ${U.release}</div>
+  <div class="row"><span class="tag pick">YOUR PICK</span><span class="tag stack">STACK</span></div>
+  <div class="row" style="margin-top:6px"><span class="chip l">L 220%</span><span class="chip f">F 220%</span><span class="chip a">⚔ 95%</span><span class="chip d">🛡 5%</span></div></div></div>`;
+const details = `
+  <div class="sec"><h5>Leader skill</h5><div class="box">${LEADER}</div></div>
+  <div class="sec"><h5>Super Attack</h5><div class="box">${SA} <span class="tag stack" style="margin-left:4px">STACKS ATK &amp; DEF</span></div></div>
+  <div class="sec"><h5>Passive</h5><div class="box">${passiveHTML}</div></div>
+  <div class="sec"><h5>Categories <span style="text-transform:none;letter-spacing:0">(gold = boosted by your leader)</span></h5><div class="cats">${CATS.map(c => `<span class="${['Pure Saiyans', 'Gifted Warriors'].includes(c) ? 'hit' : ''}">${c}</span>`).join('')}</div></div>
+  <div class="sec"><h5>Links (max level · bright = active in this team)</h5><div class="links">${LINKS.map(([n, v, on]) => `<div class="${on ? 'on' : ''}"><span>${n}</span><i>${v}</i></div>`).join('')}</div></div>`;
+
+document.querySelectorAll('[data-sheet]').forEach(el => {
+  const phone = 'phone' in el.dataset;
+  el.innerHTML = (phone ? '<div class="grab"></div>' : '') + `<span class="x">✕</span>` + head(phone ? 60 : 66) +
+    `<div class="actions"><button class="btn danger">✕ I don't have it</button><button class="btn sec">⇄ Swap…</button></div>
+     <div class="note" style="padding:6px 16px 0;font-size:11px">On your own picks these become “Remove from tray”. On the friend: “borrowed, no need to own it”.</div>
+     <div class="tabs"><span class="on">Details</span><span>In this team (4)</span><span>Swap (10)</span></div>
+     <div class="sh-body">${details}</div>`;
+});
+
+document.querySelector('[data-hover]').innerHTML = `<div style="display:flex;gap:8px;align-items:center;margin-bottom:6px"><b>${U.name}</b><span class="tag stack">STACK</span></div>
+  <div><span class="note">Leader:</span> ${LEADER}</div><div style="margin-top:4px"><span class="note">Super:</span> ${SA}</div>
+  <div style="margin-top:4px;color:#c9b8ff">▲ DEF +50%/attack (to 400%) · ATK +40%/hit taken (to 300%)</div>
+  <div class="note" style="margin-top:6px">Click for full details &amp; actions</div>`;
+
+document.querySelector('[data-inline]').innerHTML = `<div class="left">${head(60).replace('sh-head', 'sh-head" style="padding:0')}
+    <button class="btn danger" style="width:100%">✕ I don't have it: find another</button>
+    <button class="btn sec" style="width:100%">⇄ Swap in another unit</button></div>
+  <div class="right">
+    <details class="acc" open><summary>Links in this team <span class="cnt">· 4 neighbours</span></summary>
+      <div style="margin-top:6px"><b>LSSJ Broly</b> (4): Saiyan Warrior Race · Berserker · Prepared for Battle · Fierce Battle<br><b>Vegeta</b> (4): Saiyan Warrior Race · Prodigies · Prepared for Battle · Fierce Battle<br><b>Friend</b> (5): Saiyan Warrior Race · Prodigies · Prepared for Battle · Fierce Battle · Legendary Power</div></details>
+    <details class="acc"><summary>Swap in <span class="cnt">· 10 options</span></summary></details>
+    <details class="acc"><summary>Full details <span class="cnt">· leader, super, passive, categories, links</span></summary></details>
+  </div>`;
+</script>
+</body>
+</html>

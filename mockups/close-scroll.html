@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mockup: close button and scrollbar</title>
+<style>
+  :root { --bg:#111317; --card:#1b1e24; --line:#2c3038; --text:#e8e8ea; --dim:#9aa0aa; --accent:#f0a030; --miss:#e5645a; --stack:#7b5cff;
+          --dk-teq:#22a139; --tint:var(--dk-teq); }
+  * { box-sizing:border-box; }
+  body { margin:0; background:#0b0c0f; color:var(--text); font:15px/1.45 system-ui, sans-serif; }
+  main { max-width:1260px; margin:0 auto; padding:16px; }
+  h1 { font-size:22px; margin:4px 0 6px; } h1 span { color:var(--accent); } .note { color:var(--dim); font-size:13px; }
+  .row { display:flex; gap:20px; flex-wrap:wrap; justify-content:center; margin-top:16px; }
+  .opt { width:390px; max-width:100%; } .opt h3 { margin:0 0 4px; color:var(--accent); font-size:15px; } .opt p { margin:0 0 8px; font-size:12px; color:var(--dim); min-height:48px; }
+  .now { opacity:.85; } .now h3 { color:var(--dim); }
+
+  /* shared window (the real Details look) */
+  .win { position:relative; height:560px; border-radius:16px; border:1px solid #3a3f49; display:flex; flex-direction:column; overflow:hidden;
+         background:radial-gradient(120% 50% at 50% 0%, color-mix(in srgb, var(--tint) 28%, #111317) 0%, #111317 70%); }
+  .mtop { display:flex; align-items:center; justify-content:space-between; padding:12px 16px; flex:none;
+          background:linear-gradient(90deg, color-mix(in srgb, var(--tint) 35%, #16181d), #16181d); border-bottom:1px solid #3a3f49; }
+  .mtop b { font-size:15px; letter-spacing:.06em; }
+  .body { flex:1; overflow-y:auto; padding-bottom:16px; }
+  .hero { display:flex; gap:12px; align-items:center; margin:14px; padding:12px; border-radius:14px; border:1px solid color-mix(in srgb, var(--tint) 60%, transparent);
+          background:linear-gradient(135deg, color-mix(in srgb, var(--tint) 28%, #16181d), #16181d 70%); }
+  .pic { width:58px; height:58px; border-radius:10px; flex:none; background:linear-gradient(135deg,#2e7d32,#0f3d14); border:2px solid var(--tint); box-shadow:0 0 8px var(--tint); }
+  .hero b { font-size:16px; display:block; } .hero .s { font-size:11.5px; color:var(--dim); }
+  .tag { display:inline-block; font-size:9.5px; font-weight:700; padding:0 6px; border-radius:6px; margin-top:4px; } .own { background:#4cc38a; color:#111; } .stk { background:var(--stack); color:#fff; }
+  .sec { margin:14px; } .sec h4 { margin:0 0 6px; font-size:14px; color:color-mix(in srgb, var(--tint) 65%, #fff); }
+  .panel { border:1px solid color-mix(in srgb, var(--tint) 40%, var(--line)); border-radius:12px; overflow:hidden; background:#16181dcc; font-size:12.5px; }
+  .pad { padding:9px 12px; } .band { padding:6px 12px; font-weight:700; font-size:12px; color:color-mix(in srgb, var(--tint) 60%, #fff); background:color-mix(in srgb, var(--tint) 16%, #16181d); }
+  .lines { padding:5px 12px 8px; } .lines div::before { content:'• '; color:var(--dim); } .up { color:#4cd964; font-weight:800; }
+  .inf { display:inline-block; font-size:9px; font-weight:800; background:var(--stack); color:#fff; border-radius:4px; padding:0 4px; margin-left:4px; }
+
+  /* NOW: as in the app */
+  .now .mclose { background:var(--miss); color:#111; font-weight:800; font-size:12px; border:0; border-radius:8px; padding:6px 12px; }
+
+  /* A: round icon button + slim tinted scrollbar */
+  .a .x { width:34px; height:34px; border-radius:50%; display:grid; place-items:center; border:1px solid #ffffff22; background:#ffffff10; color:#e8e8ea; font-size:16px; cursor:pointer; transition:.15s; }
+  .a .x:hover { background:var(--miss); border-color:var(--miss); color:#111; transform:rotate(90deg); }
+  .a .body { scrollbar-width:thin; scrollbar-color:color-mix(in srgb, var(--tint) 70%, #fff 0%) transparent; }
+  .a .body::-webkit-scrollbar { width:8px; } .a .body::-webkit-scrollbar-track { background:transparent; margin:6px; }
+  .a .body::-webkit-scrollbar-thumb { background:color-mix(in srgb, var(--tint) 65%, #000); border-radius:8px; border:2px solid transparent; background-clip:padding-box; }
+  .a .body::-webkit-scrollbar-thumb:hover { background:var(--tint); background-clip:padding-box; }
+  .a .body::-webkit-scrollbar-button { display:none; }
+
+  /* B: outlined "Close" with icon + scrollbar that only shows while hovering */
+  .b .x { display:flex; gap:6px; align-items:center; padding:6px 12px; border-radius:999px; border:1px solid color-mix(in srgb, var(--tint) 70%, #fff 0%); color:#e8e8ea; background:transparent; font-size:13px; font-weight:600; cursor:pointer; }
+  .b .x:hover { background:color-mix(in srgb, var(--tint) 35%, transparent); }
+  .b .x i { font-style:normal; font-size:14px; }
+  .b .body { scrollbar-width:thin; scrollbar-color:transparent transparent; } .b .body:hover { scrollbar-color:#ffffff40 transparent; }
+  .b .body::-webkit-scrollbar { width:6px; } .b .body::-webkit-scrollbar-button { display:none; }
+  .b .body::-webkit-scrollbar-thumb { background:transparent; border-radius:6px; } .b .body:hover::-webkit-scrollbar-thumb { background:#ffffff40; }
+
+  /* C: no top bar; a floating round ✕ over the hero, and a hair-thin scrollbar */
+  .c .mtop { display:none; }
+  .c .x { position:absolute; top:12px; right:14px; z-index:3; width:36px; height:36px; border-radius:50%; display:grid; place-items:center; background:#000a; border:1px solid #ffffff30;
+          color:#fff; font-size:17px; backdrop-filter:blur(4px); cursor:pointer; box-shadow:0 4px 14px #0008; }
+  .c .x:hover { background:var(--miss); color:#111; }
+  .c .hero { margin-top:16px; padding-right:52px; }
+  .c .body { scrollbar-width:thin; scrollbar-color:#ffffff30 transparent; }
+  .c .body::-webkit-scrollbar { width:4px; } .c .body::-webkit-scrollbar-button { display:none; }
+  .c .body::-webkit-scrollbar-thumb { background:#ffffff30; border-radius:4px; } .c .body:hover::-webkit-scrollbar-thumb { background:#ffffff60; }
+  .c .grab { display:none; }
+  @media (max-width:600px) { .c .grab { display:block; width:40px; height:4px; border-radius:2px; background:#555; margin:8px auto 0; } }
+</style>
+</head>
+<body>
+<main>
+  <h1>Dokkan <span>Team Builder</span>: close button &amp; scrollbar</h1>
+  <p class="note">The Details window with Broly (Wrathful), scroll each one and hover the close button. "Now" is how the app looks today. The same style would also go on the Replace window.</p>
+  <div class="row">
+    <div class="opt now"><h3>Now</h3><p>Red block button, the default grey Windows scrollbar with arrows.</p>
+      <div class="win"><div class="mtop"><b>UNIT DETAILS</b><button class="mclose">CLOSE</button></div><div class="body" data-c></div></div></div>
+    <div class="opt a"><h3>A · Round ✕ + slim tinted scrollbar</h3><p>A quiet round ✕ that turns red and spins a quarter turn on hover. Slim rounded scrollbar in the unit's type colour, no arrows.</p>
+      <div class="win"><div class="mtop"><b>UNIT DETAILS</b><span class="x" title="Close (Esc)">✕</span></div><div class="body" data-c></div></div></div>
+    <div class="opt b"><h3>B · "✕ Close" pill + hide-until-hover scrollbar</h3><p>A tinted outlined pill that reads "Close". The scrollbar is invisible until the mouse is over the content.</p>
+      <div class="win"><div class="mtop"><b>UNIT DETAILS</b><span class="x"><i>✕</i>Close</span></div><div class="body" data-c></div></div></div>
+    <div class="opt c"><h3>C · No title bar, floating ✕</h3><p>Drops the "UNIT DETAILS" bar so the unit starts at the top; a floating round ✕ sits over the card. Hair-thin scrollbar.</p>
+      <div class="win"><div class="mtop"></div><span class="x" title="Close (Esc)">✕</span><div class="body" data-c></div></div></div>
+  </div>
+</main>
+<script>
+const content = `<div class="grab"></div><div class="hero"><span class="pic"></span><div><b>Broly (Wrathful)</b><div class="s">Relentlessly Surging Power · LR Extreme TEQ · 12 Sep 2025</div><span class="tag own">OWNED</span> <span class="tag stk">STACK</span></div></div>
+  <div class="sec"><h4>Leader Skill</h4><div class="panel"><div class="pad">"Exploding Rage" Category Ki +4 and HP, ATK &amp; DEF +220%</div></div></div>
+  <div class="sec"><h4>Super Attack · Anger Shout</h4><div class="panel"><div class="pad">Raises ATK &amp; DEF and causes mega-colossal damage to enemy <span class="inf">∞ STACKS ATK &amp; DEF</span></div></div></div>
+  <div class="sec"><h4>Passive</h4><div class="panel">
+    <div class="band">Activates the Entrance Animation upon the character's entry</div><div class="lines"><div>Ki +4 and damage reduction rate 40% <span class="up">▲</span> for 1 turn</div><div>Ki +3 and damage reduction rate 30% <span class="up">▲</span> for 3 turns</div></div>
+    <div class="band">Basic effect(s)</div><div class="lines"><div>ATK &amp; DEF 260% <span class="up">▲</span></div><div>Guards all attacks</div></div>
+    <div class="band">For every attack performed</div><div class="lines"><div>Ki +1 (up to +5)</div><div>DEF 50% <span class="up">▲</span> (up to 400%)<span class="inf">∞ STACK</span></div><div>Chance of performing a critical hit 20% <span class="up">▲</span> (up to 100%)</div></div>
+    <div class="band">For every attack received</div><div class="lines"><div>Ki +1 (up to +5)</div><div>ATK 40% <span class="up">▲</span> (up to 300%)<span class="inf">∞ STACK</span></div><div>Launches an additional attack that has a high chance of becoming a Super Attack (up to 4 times)</div></div>
+  </div></div>`;
+document.querySelectorAll('[data-c]').forEach(e => e.innerHTML = content);
+</script>
+</body>
+</html>

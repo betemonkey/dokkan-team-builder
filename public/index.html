@@ -1,0 +1,1087 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dokkan Team Builder</title>
+<style>
+  :root { --bg:#111317; --card:#1b1e24; --line:#2c3038; --text:#e8e8ea; --dim:#9aa0aa; --accent:#f0a030; --ok:#4cc38a; --miss:#e5645a;
+          --dk-agl:#0579e3; --dk-teq:#22a139; --dk-int:#aa46c3; --dk-str:#c72126; --dk-phy:#bd7204; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font:15px/1.45 system-ui, sans-serif; }
+  main { max-width:1100px; margin:0 auto; padding:16px 16px 0; }
+  h1 { font-size:22px; margin:4px 0 16px; } h1 span { color:var(--accent); }
+  h3 { font-size:15px; margin:22px 0 8px; }
+  .tabs { display:flex; gap:8px; margin-bottom:14px; }
+  .tabs button { background:var(--card); color:var(--text); border:1px solid var(--line); padding:8px 14px; border-radius:8px; cursor:pointer; font:inherit; }
+  .tabs button.on { border-color:var(--accent); color:var(--accent); }
+  input[type=text] { width:100%; padding:10px 12px; border-radius:8px; border:1px solid var(--line); background:var(--card); color:var(--text); font:inherit; }
+  .note { color:var(--dim); font-size:13px; }
+  .loading { color:var(--accent); }
+  .btn { background:var(--accent); color:#111; border:0; border-radius:8px; padding:10px 18px; font:inherit; font-weight:700; cursor:pointer; }
+  .btn:disabled { opacity:.4; cursor:default; }
+  .btn.ghost { background:none; color:var(--dim); border:1px solid var(--line); font-weight:400; }
+
+  /* ---------- card frame: in-game layers (frame, character, rarity, type) ---------- */
+  .dkt { position:relative; display:block; width:var(--w, 70px); aspect-ratio:1; flex:none; margin:12px auto 4px; }
+  .dkt.t0 { --el:var(--dk-agl); } .dkt.t1 { --el:var(--dk-teq); } .dkt.t2 { --el:var(--dk-int); }
+  .dkt.t3 { --el:var(--dk-str); } .dkt.t4 { --el:var(--dk-phy); }
+  .dkt img { position:absolute; display:block; pointer-events:none; -webkit-user-drag:none; }
+  .dkt .fr { position:relative; width:100%; height:100%; object-fit:contain; filter:drop-shadow(0 0 5px var(--el)); }
+  .dkt .ch { width:125.5%; top:-17.5%; left:50%; transform:translateX(-50%); }
+  .dkt .ra { left:-22%; bottom:-7%; width:70%; } .dkt .ra.ssr { left:-13%; width:60%; }
+  .dkt .ty { top:-17%; right:-15%; width:43%; }
+
+  .fr-cell { position:relative; text-align:center; font-size:11px; color:var(--dim); cursor:pointer; padding:0 4px; }
+  .fr-cell .nm { color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:6px; }
+  .fr-cell .sub { font-size:10px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .fr-cell.sel .dkt::after { content:''; position:absolute; inset:-5px; border:3px solid var(--accent); border-radius:10px; }
+  .fr-cell .check { position:absolute; right:2px; top:0; background:var(--accent); color:#111; font-weight:800; border-radius:50%; width:20px; height:20px; line-height:20px; font-size:12px; z-index:3; }
+  .fr-cell .x { position:absolute; left:2px; top:0; background:#000c; color:#fff; border-radius:50%; width:20px; height:20px; line-height:20px; font-size:13px; z-index:3; }
+  .tag { display:inline-block; font-size:9px; font-weight:700; padding:0 6px; border-radius:6px; white-space:nowrap; margin-top:5px; }
+  .tag.pick { background:var(--accent); color:#111; } .tag.own { background:var(--ok); color:#111; } .tag.miss { background:var(--miss); color:#111; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(92px,1fr)); gap:10px 6px; margin-top:12px; }
+
+  /* ---------- team board ---------- */
+  .board { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:14px; margin-bottom:12px; }
+  .slots { display:grid; grid-template-columns:repeat(7, minmax(0,1fr)); gap:8px; }
+  .slot { text-align:center; min-width:0; }
+  .slotlab { font-size:10px; color:var(--dim); text-transform:uppercase; letter-spacing:.05em; }
+  .slot .nm { font-size:11px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .slot.friend .dkt { opacity:.75; }
+  .leaderbox { margin-top:14px; font-size:13px; } .leaderbox b { color:var(--accent); }
+  .missing { font-size:13px; color:var(--dim); margin-top:6px; } .missing b { color:var(--text); }
+  /* Teams that cleared an event: mockup A (mockups/cleared-teams.html) */
+  .cl-src { margin:0 0 10px; } .cl-src a { color:#7fb6ff; }
+  .cl-legend { display:none; }
+  .cl-list { display:flex; flex-direction:column; gap:10px; }
+  .cl-team { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:10px 12px 8px; }
+  .cl-head { display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin-bottom:2px; }
+  .cl-when { margin-left:auto; font-size:12px; color:var(--dim); }
+  .cl-chip { display:inline-flex; gap:4px; align-items:center; font-size:12px; padding:2px 8px; border-radius:999px; background:#ffffff0d; border:1px solid #ffffff14; color:var(--dim); white-space:nowrap; }
+  .cl-chip b { color:var(--text); font-weight:700; } .cl-chip.ok b { color:var(--ok); } .cl-chip.bad b { color:#ff9b8f; }
+  .cl-row { display:grid; grid-template-columns:minmax(0,1fr) 14px repeat(5, minmax(0,1fr)) 14px minmax(0,1fr); align-items:start; }
+  .cl-sep { width:1px; justify-self:center; align-self:stretch; background:var(--line); margin:16px 0 22px; }
+  .cl-card { text-align:center; min-width:0; cursor:pointer; border-radius:10px; }
+  .cl-card:hover { background:#ffffff0a; }
+  .cl-card .dkt { --w:64px; margin:12px auto 4px; }
+  .cl-badge { position:absolute; left:-7px; top:-7px; width:20px; height:20px; border-radius:50%; font-size:11px; font-weight:800; display:grid; place-items:center; z-index:3; box-shadow:0 0 0 2px var(--card); }
+  .cl-badge.L { background:var(--lead); color:#111; } .cl-badge.F { background:var(--friend); color:#fff; }
+  .cl-name { font-size:11px; line-height:1.25; color:var(--text); height:2.5em; overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; padding:0 2px; }
+  .cl-tags { height:17px; margin-top:3px; }
+  .cl-tags .tag { margin-top:0; padding:1px 6px; line-height:1.4; }
+  .cl-more { color:var(--dim); font-size:13px; cursor:pointer; margin:2px 0 0; }
+  .cl-use { padding:4px 12px; font-size:12.5px; }
+  @media (max-width:600px) {
+    .cl-name { display:none; } .cl-row { grid-template-columns:minmax(0,1fr) 8px repeat(5, minmax(0,1fr)) 8px minmax(0,1fr); }
+    .cl-card .dkt { --w:min(48px, 100%); margin-top:10px; } .cl-tags { height:12px; }
+    .cl-tags .tag { font-size:0; padding:0; width:10px; height:10px; border-radius:50%; vertical-align:middle; }
+    .cl-when { margin-left:0; }
+    .cl-legend { display:block; margin-top:2px; }
+    .cl-legend i { display:inline-block; width:9px; height:9px; border-radius:50%; margin:0 4px 0 8px; vertical-align:middle; }
+  }
+  .missing.covwarn { color:#ffb4a3; background:#ff6b4a14; border:1px solid #ff6b4a44; border-radius:10px; padding:8px 10px; } .missing.covwarn b { color:#ffcfc4; }
+  .row2 { display:flex; gap:10px; align-items:center; justify-content:space-between; flex-wrap:wrap; margin-top:12px; }
+
+  /* ---------- rotation map (mockup A, DokkanStats-style) ---------- */
+  :root { --lead:#e3b23c; --friend:#8e6be8; --atk:#2f7fd6; }
+  .lf { display:flex; gap:40px; justify-content:center; padding-bottom:12px; border-bottom:1px solid var(--line); margin-bottom:14px; }
+  .lf .who { text-align:center; } .lf .lab { font-size:11px; letter-spacing:.15em; font-weight:800; }
+  .lf .lab.l { color:var(--lead); } .lf .lab.f { color:var(--friend); }
+  .teamtot { display:inline-block; margin-top:4px; background:var(--lead); color:#111; font-weight:800; font-size:12px; padding:1px 8px; border-radius:6px; }
+  .rmap { position:relative; background:#15171c; border:1px solid var(--line); border-radius:16px; padding:10px 6px 14px;
+          display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); row-gap:4px; }
+  .rmap svg { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; }
+  .rmap .u { position:relative; z-index:1; text-align:center; cursor:pointer; min-width:0; }
+  .rmap .u.on .dkt::after { content:''; position:absolute; inset:-5px; border:2px solid var(--text); border-radius:10px; }
+  .rotlab { font-size:10px; color:var(--dim); text-transform:uppercase; letter-spacing:.06em; }
+  .chips { display:flex; gap:4px; justify-content:center; flex-wrap:wrap; margin-top:3px; }
+  .chip { font-size:10.5px; font-weight:700; padding:1px 6px; border-radius:5px; white-space:nowrap; }
+  .chip.l { background:var(--lead); color:#111; } .chip.f { background:var(--friend); color:#fff; }
+  .chip.a { background:var(--atk); color:#fff; } .chip.d { background:#2b5f9e; color:#fff; } .chip.x { background:#3a3f49; color:var(--dim); }
+  .chip.k { background:#2d3340; color:#ffd36a; cursor:help; } .chip.k.low { background:#5a2a24; color:#ff9b8f; }
+  .tag.xch { background:#1f8f86; color:#fff; cursor:help; } .tag.xch.bad { background:#8f3a1f; }
+  .chip.s { cursor:help; } .chip.s.all { background:#1f6b45; color:#bff2d6; } .chip.s.some { background:#5c4a17; color:#ffe08a; } .chip.s.none { background:#5a2a24; color:#ff9b8f; }
+  .simbox { margin:6px 0; padding:8px 10px; border-radius:10px; background:#5fd38a12; border:1px solid #5fd38a33; font-size:13px; } .simbox b.ok { color:#5fd38a; } .simbox b.bad { color:#ff8a6b; }
+  .chip.sw { cursor:help; background:#3a2f5c; color:#d6c8ff; } .chip.sw.ok { background:#1f4f6b; color:#bfe6ff; }
+  .surv table { width:100%; border-collapse:collapse; font-size:12.5px; } .surv th, .surv td { padding:5px 6px; text-align:left; border-bottom:1px solid #ffffff12; }
+  .surv th { color:var(--dim); font-weight:600; font-size:11.5px; } .surv td b { color:var(--text); }
+  .surv h5.lastH { margin:14px 0 4px; font-size:12.5px; color:var(--text); } .surv table.last td { padding:3px 6px; }
+  .surv .tipline { margin:0 0 8px; padding:6px 8px; border-radius:8px; background:#f5c54214; font-size:12.5px; }
+  .surv td b.ok { color:#5fd38a; } .surv td b.bad { color:#ff8a6b; } .surv tr.need td { background:#ffffff08; }
+  .chip.c { cursor:help; } .chip.c.all { background:#1f6b45; color:#bff2d6; } .chip.c.some { background:#5c4a17; color:#ffe08a; } .chip.c.none { background:#5a2a24; color:#ff9b8f; }
+  .band .cmark { float:right; font-weight:700; font-size:11px; padding:0 6px; border-radius:6px; }
+  .band .cmark.met { background:#1f6b45; color:#bff2d6; } .band .cmark.unmet { background:#5a2a24; color:#ff9b8f; }
+  .bestform { margin-top:8px; font-size:13px; font-weight:600; color:#5fd1c6; }
+  .exline { font-size:10px; color:#5fd1c6; margin-top:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:150px; margin-inline:auto; cursor:help; }
+  .xform { display:flex; gap:12px; align-items:center; } .xform .dkt { --w:56px; margin:10px 4px 2px; }
+  .xform .xbtn { margin-left:auto; font-size:12px; padding:6px 10px; border-radius:8px; border:1px solid var(--line); background:var(--card); color:var(--text); cursor:pointer; white-space:nowrap; }
+  .teamtot.friendtot { background:var(--friend); color:#fff; }
+  .leaderbox.friendbox b { color:var(--friend); }
+  .tags { display:flex; gap:3px; justify-content:center; flex-wrap:wrap; }
+  .tags .tag { margin-top:2px; }
+  .rmap .nm, .lf .nm { font-size:11px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:140px; margin:2px auto 0; }
+  .dkt .badge { position:absolute; left:-6px; bottom:-4px; width:22px; height:22px; border-radius:50%; font-size:11px; font-weight:800; display:grid; place-items:center; z-index:2; }
+  .dkt .badge.L { background:var(--lead); color:#111; } .dkt .badge.F { background:var(--friend); color:#fff; }
+  .legend { display:flex; flex-wrap:wrap; gap:6px 14px; margin-top:10px; font-size:12px; color:var(--dim); }
+  .legend i { display:inline-block; width:18px; height:3px; border-radius:2px; vertical-align:middle; margin-right:5px; }
+  .linkinfo { font-size:12px; color:var(--dim); margin-top:8px; min-height:1em; } .linkinfo b { color:var(--text); }
+  @media (max-width:560px) { .rmap .dkt { --w:56px; } .lf { gap:24px; } .rmap .nm { max-width:100px; } .chip { font-size:9.5px; padding:1px 4px; } }
+
+  /* ---------- building animation: the map taking shape ---------- */
+  .skwrap { background:#15171c; border:1px solid var(--line); border-radius:16px; padding:22px 14px 16px; margin-top:12px; }
+  .skel { position:relative; display:grid; grid-template-columns:repeat(3,1fr); grid-template-rows:repeat(3, 84px); max-width:620px; margin:0 auto; }
+  .sk { width:70px; height:70px; margin:auto; border-radius:12px; position:relative; z-index:1;
+        background:linear-gradient(100deg,#262a33 30%,#363c48 50%,#262a33 70%); background-size:300% 100%; animation:shim 1.3s linear infinite; }
+  .sk.l { box-shadow:0 0 0 2px #e3b23c66; }
+  @keyframes shim { from { background-position:100% 0; } to { background-position:0 0; } }
+  .skel svg { position:absolute; inset:0; width:100%; height:100%; }
+  .skel path { fill:none; stroke-width:2.2; stroke-dasharray:100; stroke-dashoffset:100; animation:draw 2.4s ease-in-out infinite; opacity:.85; }
+  @keyframes draw { 50%,90% { stroke-dashoffset:0; opacity:1; } 100% { stroke-dashoffset:0; opacity:0; } }
+  .skline { text-align:center; font-size:13px; color:var(--dim); margin-top:14px; min-height:1.4em; } .skline b { color:var(--text); }
+  @media (prefers-reduced-motion: reduce) { .sk, .skel path { animation:none; } .skel path { stroke-dashoffset:0; opacity:.5; } }
+  @media (max-width:560px) { .skel { grid-template-rows:repeat(3, 70px); } .sk { width:56px; height:56px; } }
+
+  /* ---------- unit tap menu ---------- */
+  .umenu { position:absolute; z-index:50; width:236px; background:#262a33; border:1px solid #474d59; border-radius:14px; box-shadow:0 14px 40px #000c; overflow:hidden; }
+  .umenu .mh { display:flex; gap:10px; align-items:center; padding:10px 12px; border-bottom:1px solid #3a3f49; }
+  .umenu .mh .dkt { --w:38px; margin:6px 4px 0 6px; }
+  .umenu .mh b { font-size:13px; display:block; line-height:1.2; } .umenu .mh span { font-size:11px; color:var(--dim); }
+  .mi { display:flex; gap:10px; align-items:center; padding:10px 14px; font-size:14px; border-bottom:1px solid #30353f; cursor:pointer; }
+  .mi:last-child { border-bottom:0; } .mi:hover { background:#ffffff0d; }
+  .mi i { font-style:normal; width:20px; text-align:center; } .mi small { margin-left:auto; color:var(--dim); font-size:11px; }
+  .mi.hot { background:#e5645a22; color:#ff8a80; font-weight:700; } .mi.hot:hover { background:#e5645a38; }
+  .mi.dim { color:var(--dim); font-size:12px; cursor:default; }
+
+  /* ---------- full-screen window (centred on wide screens) ---------- */
+  body.noscroll { overflow:hidden; }
+  .modal { position:fixed; inset:0; z-index:60; background:#000a; display:flex; justify-content:center; align-items:stretch; }
+  .mwin { width:100%; max-width:720px; background:var(--bg); display:flex; flex-direction:column; overflow:hidden; }
+  @media (min-width:760px) { .modal { align-items:center; padding:24px; } .mwin { max-height:calc(100vh - 48px); height:860px; border-radius:16px; border:1px solid #3a3f49; } }
+  .mtop { display:flex; align-items:center; justify-content:space-between; padding:12px 16px; background:linear-gradient(90deg,#2a2016,#1b1e24); border-bottom:1px solid #3a3f49; flex:none; }
+  .mtop b { font-size:16px; letter-spacing:.06em; }
+  /* Round ✕: quiet until hovered, then red with a quarter turn */
+  .mclose { width:34px; height:34px; border-radius:50%; display:grid; place-items:center; padding:0; border:1px solid #ffffff22; background:#ffffff10;
+            color:var(--text); font-size:16px; line-height:1; cursor:pointer; transition:background .15s, border-color .15s, color .15s, transform .15s; }
+  .mclose:hover, .mclose:focus-visible { background:var(--miss); border-color:var(--miss); color:#111; transform:rotate(90deg); outline:none; }
+  /* Round ‹ back, same family as the ✕: lights up in the accent colour and nudges left */
+  .mback { width:34px; height:34px; border-radius:50%; display:grid; place-items:center; padding:0 0 3px; margin-right:10px; flex:none; border:1px solid #ffffff22; background:#ffffff10;
+           color:var(--text); font-size:24px; line-height:1; cursor:pointer; transition:background .15s, border-color .15s, color .15s, transform .15s; }
+  .mback:hover, .mback:focus-visible { background:var(--accent); border-color:var(--accent); color:#111; transform:translateX(-2px); outline:none; }
+  .mtop b { margin-right:auto; }
+  /* Slim rounded scrollbar in the window's type colour (orange on windows without a unit), no arrows */
+  .mbody { overflow:auto; flex:1; padding-bottom:20px; --sb:color-mix(in srgb, var(--tint, var(--accent)) 65%, #000); }
+  /* Standard scrollbar props only where the ::-webkit-scrollbar styling below isn't supported (e.g. Firefox):
+     in Chromium/WebView2 setting them disables the custom bar and brings the arrow buttons back. */
+  @supports not selector(::-webkit-scrollbar) { .mbody { scrollbar-width:thin; scrollbar-color:var(--sb) transparent; } }
+  .mbody::-webkit-scrollbar { width:8px; } .mbody::-webkit-scrollbar-track { background:transparent; margin:6px; }
+  .mbody::-webkit-scrollbar-thumb { background:var(--sb); border-radius:8px; border:2px solid transparent; background-clip:padding-box; }
+  .mbody::-webkit-scrollbar-thumb:hover { background:var(--tint, var(--accent)); background-clip:padding-box; }
+  .mbody::-webkit-scrollbar-button { display:none; }
+  .info { position:absolute; right:4px; top:4px; z-index:4; width:20px; height:20px; border-radius:50%; background:#000b; border:1px solid #fff6; color:#fff;
+          font:700 12px/18px Georgia, serif; font-style:italic; text-align:center; cursor:pointer; }
+  .info:hover { background:var(--accent); color:#111; }
+  .fr-cell .check { right:auto; left:2px; }
+
+  /* replace picker */
+  .replacing { display:flex; gap:10px; align-items:center; padding:10px 16px; font-size:13px; color:var(--dim); border-bottom:1px solid var(--line); }
+  .replacing .dkt { --w:36px; margin:6px 4px 0; } .replacing b { color:var(--text); }
+  .seg { display:flex; gap:6px; padding:10px 16px 0; }
+  .seg span { flex:1; text-align:center; font-size:13px; padding:7px 0; border-radius:8px; background:var(--card); border:1px solid var(--line); color:var(--dim); cursor:pointer; }
+  .seg span.on { border-color:var(--accent); color:var(--accent); font-weight:700; background:#f0a03014; }
+  .psearch { display:block; width:calc(100% - 32px) !important; margin:10px 16px 0; }
+  .boxf { display:flex; gap:6px; align-items:center; padding:8px 16px; font-size:12px; color:var(--dim); flex-wrap:wrap; }
+  .boxf span { padding:2px 10px; border-radius:999px; border:1px solid var(--line); cursor:pointer; } .boxf span.on { background:var(--accent); color:#111; border-color:var(--accent); font-weight:700; }
+  .cands { display:grid; grid-template-columns:repeat(auto-fill, minmax(104px,1fr)); gap:12px 6px; padding:4px 12px 14px; }
+  .cand { position:relative; text-align:center; font-size:10.5px; border-radius:10px; padding:2px 2px 8px; cursor:pointer; min-width:0; }
+  .cand:hover { background:#ffffff08; } .cand .dkt { --w:60px; margin:14px auto 6px; }
+  .cand.cur { background:#ffffff0a; outline:1px dashed #555; } .cand .nm { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding:0 2px; margin-top:2px; }
+  .cand .chip { font-size:9.5px; padding:0 4px; }
+  .cand.best .dkt::after { content:'BEST'; position:absolute; left:50%; transform:translateX(-50%); top:-15px; font-size:9px; font-weight:800; background:var(--ok); color:#111; border-radius:5px; padding:0 5px; }
+
+  /* details, tinted by type */
+  .mwin.tinted { background:radial-gradient(120% 50% at 50% 0%, color-mix(in srgb, var(--tint) 28%, #111317) 0%, #111317 70%); }
+  .mwin.tinted .mtop { background:linear-gradient(90deg, color-mix(in srgb, var(--tint) 35%, #16181d), #16181d); }
+  .hero { display:flex; gap:14px; align-items:center; margin:16px; padding:12px; border-radius:14px; border:1px solid color-mix(in srgb, var(--tint, #888) 60%, transparent);
+          background:linear-gradient(135deg, color-mix(in srgb, var(--tint, #888) 28%, #16181d), #16181d 70%); }
+  .hero .dkt { --w:74px; margin:8px 6px 0; } .hero b { font-size:18px; display:block; line-height:1.2; } .hero .s { font-size:12px; color:var(--dim); }
+  .acts { display:flex; gap:8px; margin:0 16px 6px; }
+  .acts span { flex:1; text-align:center; font-size:13px; font-weight:700; padding:10px 6px; border-radius:10px; border:1px solid var(--line); background:var(--card); cursor:pointer; }
+  .acts span.danger { background:var(--miss); color:#111; border-color:var(--miss); } .acts span.off { color:var(--dim); cursor:default; font-weight:400; }
+  .sec { margin:16px; } .sec h4 { margin:0 0 6px; font-size:15px; color:color-mix(in srgb, var(--tint, #888) 65%, #fff); }
+  .panel { border:1px solid color-mix(in srgb, var(--tint, #888) 40%, var(--line)); border-radius:12px; overflow:hidden; background:#16181dcc; font-size:13px; }
+  .panel .pad { padding:10px 12px; }
+  .band { padding:6px 12px; font-weight:700; font-size:12.5px; color:color-mix(in srgb, var(--tint, #888) 60%, #fff); background:color-mix(in srgb, var(--tint, #888) 16%, #16181d);
+          border-top:1px solid color-mix(in srgb, var(--tint, #888) 30%, var(--line)); }
+  .band:first-child { border-top:0; }
+  .lines { padding:6px 12px 8px; } .lines div { padding:2px 0; } .lines div::before { content:'• '; color:var(--dim); }
+  .up { color:#4cd964; font-weight:800; } .down { color:#ff6b6b; font-weight:800; }
+  .inf { display:inline-block; font-size:9.5px; font-weight:800; background:var(--stack, #7b5cff); color:#fff; border-radius:4px; padding:0 5px; margin-left:6px; vertical-align:1px; }
+  .cats { display:flex; gap:4px; flex-wrap:wrap; } .cats span { background:#ffffff10; border-radius:6px; padding:1px 8px; font-size:12px; } .cats span.hit { background:#e3b23c33; color:var(--lead); }
+  .lk { display:flex; justify-content:space-between; gap:8px; padding:3px 0; border-bottom:1px dashed #ffffff12; } .lk:last-child { border:0; }
+  .lk.off { color:var(--dim); } .lk i { font-style:normal; color:var(--dim); font-size:11.5px; text-align:right; }
+
+  /* ---------- pick tray ---------- */
+  .tray { position:sticky; bottom:0; margin:16px 0 0; background:#1f232b; border:1px solid var(--accent); border-radius:12px 12px 0 0; padding:10px 12px;
+          display:flex; align-items:center; gap:10px; flex-wrap:wrap; z-index:5; }
+  .tray .mini { display:flex; gap:12px; flex:1; min-width:200px; flex-wrap:wrap; padding:6px 4px 0; }
+  .tray .mini .dkt { --w:44px; margin:4px 0; cursor:pointer; }
+  .tray .count { font-size:13px; color:var(--dim); }
+  .fest { font-size:13px; display:flex; align-items:center; gap:6px; cursor:pointer; white-space:nowrap; }
+  .fest input { accent-color:var(--accent); width:16px; height:16px; }
+  .fest select { font:inherit; color:var(--text); background:var(--card); border:1px solid var(--accent); border-radius:8px; padding:5px 8px; cursor:pointer; }
+  .tag.stack { background:#7b5cff; color:#fff; margin-left:2px; }
+  .boost { font-size:10px; color:var(--dim); }
+  .stacklist { margin-top:10px; font-size:12px; color:var(--dim); } .stacklist b { color:var(--text); }
+  .stacklist div { margin-top:3px; }
+
+  @media (max-width: 640px) {
+    .slots { grid-template-columns:repeat(4, minmax(0,1fr)); row-gap:14px; }
+    .dkt { --w:62px; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <h1>Dokkan <span>Team Builder</span></h1>
+  <div class="tabs">
+    <button id="tab-build" class="on">Build a team</button>
+    <button id="tab-box">My box (<span id="boxCount">0</span>)</button>
+  </div>
+
+  <section id="view-build">
+    <input type="text" id="q" placeholder="Search units and tap the ones you want in your team (up to 6)…">
+    <div id="results" class="grid"></div>
+    <div id="boxPickWrap" hidden>
+      <h3>From my box <span class="note">(tap to add to the team)</span></h3>
+      <div id="boxPick" class="grid"></div>
+    </div>
+    <div id="repl" class="note" style="margin-top:12px"></div>
+    <div id="out"></div>
+    <div class="tray" id="tray">
+      <div class="mini" id="trayMini"></div>
+      <span class="count" id="trayCount">0 picked · up to 6</span>
+      <label class="fest" title="Long one-run events: buffs carry over between phases, so units whose ATK/DEF keeps climbing (stackers) fill the open slots, and each unit shows how far its DEF carries it">Event
+        <select id="event"><option value="">None</option><option value="festival">Festival of Battles</option><option value="meteor">Meteor Survival</option></select></label>
+      <button class="btn ghost" id="clear">Clear</button>
+      <button class="btn" id="build" disabled>Build team ▶</button>
+    </div>
+  </section>
+
+  <section id="view-box" hidden>
+    <p class="note">Search your units and tap to add them. Teams are filled from units listed here (plus the ones you pick).</p>
+    <input type="text" id="bq" placeholder="Search a unit to add…">
+    <div id="bresults" class="grid"></div>
+    <h3>Your box</h3>
+    <div id="box" class="grid"></div>
+    <p class="note" style="margin:28px 0 16px">Unit data from web-api.eu, card art from dokkaninfo, both cached locally. Leader values are what web-api.eu shows (EZA versions may not be reflected).</p>
+  </section>
+</main>
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+const MAX = 6;
+let box = [], picks = [], lastResults = [];
+// Saved state is checked on load: anything damaged or from an old version falls back to a safe default
+// instead of stopping the page (one bad value used to keep the box from loading).
+const unitOk = u => u && typeof u === 'object' && /^\d{1,9}$/.test(String(u.id)) && typeof u.name === 'string';
+const slimUnit = u => ({ id: String(u.id), title: String(u.title || ''), name: String(u.name), rarity: String(u.rarity || ''), cls: String(u.cls || ''), type: String(u.type || '') });
+// Your choices (tray, "I don't have it", kept leader, event) are kept in a file by the server, so they survive
+// restarts: the desktop app gets a new address each launch and browser storage is tied to the address.
+// The file is read once, before anything below reads the saved values; every change is written back.
+const STATE_KEYS = ['dk-picks', 'dk-excluded', 'dk-leader', 'dk-event', 'dk-friend', 'dk-prev'];
+let stateTimer = null;
+function syncState() {
+  clearTimeout(stateTimer);
+  stateTimer = setTimeout(() => {
+    try {
+      const s = {};
+      for (const k of STATE_KEYS) { const v = localStorage.getItem(k); if (v != null) s[k] = v; }
+      fetch('/api/state', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(s), keepalive: true })
+        .then(r => { if (!r.ok) console.warn('Saving your choices failed:', r.status); }).catch(e => console.warn('Saving your choices failed:', e.message));
+    } catch {}
+  }, 300);
+}
+// a change made just before closing or reloading is saved too
+addEventListener('pagehide', () => { if (stateTimer) { clearTimeout(stateTimer); stateTimer = null; syncNow(); } });
+function syncNow() {
+  try {
+    const s = {};
+    for (const k of STATE_KEYS) { const v = localStorage.getItem(k); if (v != null) s[k] = v; }
+    fetch('/api/state', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(s), keepalive: true }).catch(() => {});
+  } catch {}
+}
+(function loadServerState() {
+  try {
+    const x = new XMLHttpRequest();
+    x.open('GET', '/api/state', false);   // synchronous on purpose: the saved values must be in place before they're read
+    x.send();
+    if (x.status !== 200) return;
+    const s = JSON.parse(x.responseText) || {};
+    if (STATE_KEYS.some(k => typeof s[k] === 'string')) {
+      for (const k of STATE_KEYS) { if (typeof s[k] === 'string') localStorage.setItem(k, s[k]); else localStorage.removeItem(k); }
+    } else syncState();   // no file yet: keep what this browser had and save it
+  } catch {}
+})();
+function loadSaved(key, check, fallback) {
+  try { const v = JSON.parse(localStorage.getItem(key)); return check(v) ? v : fallback; } catch { return fallback; }
+}
+picks = loadSaved('dk-picks', v => Array.isArray(v), []).filter(unitOk).map(slimUnit).slice(0, MAX);
+const savePicks = () => { try { localStorage.setItem('dk-picks', JSON.stringify(picks.map(slimUnit))); } catch {} syncState(); };
+
+// ----- card frame (in-game layers) -----
+const TYPES = ['AGL', 'TEQ', 'INT', 'STR', 'PHY'];
+const RARE = { LR: 5, UR: 4, SSR: 3 };
+function dkt(u) {
+  const t = Math.max(0, TYPES.indexOf(u.type));
+  const el = (u.cls === 'Extreme' ? 20 : 10) + t;
+  const r = RARE[u.rarity] || 3;
+  const img = String(u.id).replace(/\D/g, '').slice(0, -1) + '0';   // digits only: nothing else ever reaches the src
+  const im = (cls, src) => `<img class="${cls}" src="${src}" alt="" loading="lazy" onerror="this.remove()">`;
+  return `<span class="dkt t${t}">` + im('fr', `/art/frame/${t * 10 + r}`) + im('ch', `/art/thumb/${img}`) +
+    im(r === 3 ? 'ra ssr' : 'ra', `/art/rare/${r}`) + im('ty', `/art/type/${el}`) + '</span>';
+}
+const cell = (u, extra = '') => `<div class="fr-cell" data-id="${esc(u.id)}" title="${esc(u.title)} - ${esc(u.name)}">${extra}<span class="info" data-info="${esc(u.id)}" title="Details">i</span>${dkt(u)}
+  <div class="nm">${esc(u.name)}</div><div class="sub">${esc(u.title)}</div></div>`;
+
+function debounce(fn, ms) { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; }
+async function api(path, opts) { const r = await fetch(path, opts); const j = await r.json(); if (!r.ok) throw new Error(j.error); return j; }
+
+// ----- tabs -----
+function show(which) {
+  $('#view-build').hidden = which !== 'build'; $('#view-box').hidden = which !== 'box';
+  $('#tab-build').classList.toggle('on', which === 'build'); $('#tab-box').classList.toggle('on', which === 'box');
+}
+$('#tab-build').onclick = () => show('build'); $('#tab-box').onclick = () => show('box');
+
+// ----- picking -----
+const pickCells = (list, sel) => list.map(u => {
+  const on = sel.has(u.id);
+  return cell(u, on ? '<span class="check">✓</span>' : '').replace('class="fr-cell"', `class="fr-cell${on ? ' sel' : ''}"`);
+}).join('');
+function renderResults() {
+  const sel = new Set(picks.map(p => p.id));
+  $('#results').innerHTML = pickCells(lastResults, sel);
+  $('#boxPickWrap').hidden = !box.length;
+  $('#boxPick').innerHTML = pickCells(box, sel);
+}
+// "Leader kept" only holds the leader steady right after a swap. Once you change your picks or the event,
+// it's a different team question, so the lock goes (your "don't have" list stays: that's about what you own).
+function releaseLeader() {
+  if (!keepLeader && !keepFriend) return;
+  keepLeader = null; keepFriend = null; saveRepl(); renderRepl();
+}
+function togglePick(u) {
+  if (!u) return;
+  const i = picks.findIndex(p => p.id === u.id);
+  if (i > -1) picks.splice(i, 1);
+  else if (picks.length < MAX) picks.push(u);
+  releaseLeader();
+  renderResults(); renderTray();
+}
+$('#boxPick').onclick = e => { const c = e.target.closest('.fr-cell'); if (c) togglePick(box.find(x => x.id === c.dataset.id)); };
+function renderTray() {
+  $('#trayMini').innerHTML = picks.map(p => `<span title="Remove ${esc(p.name)}" data-id="${esc(p.id)}">${dkt(p)}</span>`).join('')
+    || '<span class="note">Tap units above to pick them.</span>';
+  $('#trayCount').textContent = `${picks.length} picked · up to ${MAX}`;
+  $('#build').disabled = !picks.length;
+  savePicks();
+}
+// Each search box only shows the answer to its latest query (a slow older answer arriving late is ignored).
+let qSeq = 0;
+$('#q').oninput = debounce(async () => {
+  const seq = ++qSeq;
+  const q = $('#q').value.trim(); if (q.length < 3) { lastResults = []; return ($('#results').innerHTML = ''); }
+  $('#results').innerHTML = '<p class="loading">Searching…</p>';
+  try {
+    const res = await api('/api/search?q=' + encodeURIComponent(q));
+    if (seq !== qSeq) return;
+    lastResults = res;
+    renderResults();
+    if (!lastResults.length) $('#results').innerHTML = '<p class="note">No match.</p>';
+  } catch (e) { if (seq === qSeq) $('#results').innerHTML = `<p class="note">Search failed: ${esc(e.message)}</p>`; }
+}, 300);
+$('#results').onclick = e => {
+  const c = e.target.closest('.fr-cell'); if (!c) return;
+  togglePick(lastResults.find(x => x.id === c.dataset.id));
+};
+$('#trayMini').onclick = e => {
+  const s = e.target.closest('[data-id]'); if (!s) return;
+  picks = picks.filter(p => p.id !== s.dataset.id); releaseLeader(); renderResults(); renderTray();
+};
+$('#clear').onclick = () => { picks = []; excluded = []; keepLeader = null; keepFriend = null; prevPicks = null; saveRepl(); renderRepl(); renderResults(); renderTray(); };
+
+// ----- team board -----
+const tagOf = m => (m.mine ?? m.pick) ? '<span class="tag pick">YOUR PICK</span>' : m.owned ? '<span class="tag own">OWNED</span>' : '<span class="tag miss">MISSING</span>';
+const slot = (m, friend) => `<div class="slot${friend ? ' friend' : ''}" title="${esc(m.title)} - ${esc(m.name)}${m.covered ? '' : ' (not boosted by the leader)'}">
+  <div class="slotlab">${friend ? 'Friend' : m.role}</div>${dkt(m)}${friend ? '' : tagOf(m)}${m.stacker && !friend ? '<span class="tag stack">STACK</span>' : ''}
+  <div class="nm">${esc(m.name)}</div><div class="boost">${m.covered ? `ATK +${m.boost}% ×2` : 'no leader boost'}</div></div>`;
+
+// ----- rotation map -----
+const POS_GRID = { r1a: [1, 1, 'Rotation 1'], r1b: [2, 1, ''], f1: [3, 1, 'Floater'], f2: [3, 2, 'Floater'],
+                   r2a: [1, 3, 'Rotation 2'], r2b: [2, 3, ''], f3: [3, 3, 'Floater'] };
+const EDGE_COL = { r: '#e3b23c', f1: '#3fb6a8', f2: '#d9587e', f3: '#5b8fd6' };
+const edgeColor = e => e.b.startsWith('f') ? EDGE_COL[e.b] : EDGE_COL.r;
+const dktB = (u, badge) => badge ? dkt(u).replace(/<\/span>$/, `<span class="badge ${badge}">${badge}</span></span>`) : dkt(u);
+let mapSeq = 0;
+const L0 = t => t.members[0];
+// The card itself, even when the map shows its exchanged form: every action (Replace, I don't have it, Remove from
+// tray, Make leader, the kept leader) must use the card's id, since the form is never a card you can pick or exclude.
+const baseOf = m => (m && m.startsAs && m.exchange ? m.exchange : m);
+
+// ----- replacing units: "don't have it" exclusions and a kept leader, remembered per browser -----
+let excluded = loadSaved('dk-excluded', v => Array.isArray(v), []).filter(x => x && /^\d{1,9}$/.test(String(x.id)))
+  .map(x => ({ id: String(x.id), name: String(x.name || x.id) }));
+let keepLeader = loadSaved('dk-leader', v => v && typeof v === 'object' && /^\d{1,9}$/.test(String(v.id)), null);
+if (keepLeader) keepLeader = { id: String(keepLeader.id), name: String(keepLeader.name || keepLeader.id) };
+// A team loaded from a posted clear keeps its friend too, and remembers your own picks so you can go back.
+let keepFriend = loadSaved('dk-friend', v => v && typeof v === 'object' && /^\d{1,9}$/.test(String(v.id)), null);
+if (keepFriend) keepFriend = { id: String(keepFriend.id), name: String(keepFriend.name || keepFriend.id) };
+let prevPicks = loadSaved('dk-prev', v => Array.isArray(v), null);
+if (prevPicks) prevPicks = prevPicks.filter(unitOk).map(slimUnit).slice(0, MAX);
+const saveRepl = () => {
+  try {
+    localStorage.setItem('dk-excluded', JSON.stringify(excluded)); localStorage.setItem('dk-leader', JSON.stringify(keepLeader));
+    localStorage.setItem('dk-friend', JSON.stringify(keepFriend)); localStorage.setItem('dk-prev', JSON.stringify(prevPicks));
+  } catch {}
+  syncState();
+};
+function renderRepl() {
+  const parts = [];
+  if (keepLeader) parts.push(`Leader kept: <span class="chip x" data-unlead>${esc(keepLeader.name)} ×</span>`);
+  if (keepFriend && keepLeader) parts.push(`Friend kept: <span class="chip x" data-unfriend>${esc(keepFriend.name)} ×</span>`);
+  if (prevPicks) parts.push(`<span class="chip x" data-backpicks title="${esc(prevPicks.map(p => p.name).join(', ') || 'an empty tray')}">↩ Back to your picks</span>`);
+  if (excluded.length) parts.push(`Don't have: ${excluded.map(x => `<span class="chip x" data-unex="${esc(x.id)}">${esc(x.name)} ×</span>`).join(' ')}`);
+  $('#repl').innerHTML = parts.length ? parts.join(' &nbsp; ') + ' <span class="note">(tap × to undo)</span>' : '';
+}
+function excludeUnit(u) {
+  if (!excluded.some(x => x.id === u.id)) excluded.push({ id: u.id, name: u.name });
+  if (excluded.length > 300) excluded = excluded.slice(-300);   // keep the saved state small
+}
+
+function rotationMap(t) {
+  const byId = Object.fromEntries(t.members.map(m => [m.id, m]));
+  const id = 'rm' + (++mapSeq);
+  const cells = Object.entries(POS_GRID).map(([pos, [c, r, lab]]) => {
+    const mid = t.map.slots[pos];
+    const isFriend = pos === 'f3', isLead = pos === 'r1a';
+    const m = isFriend ? t.friend : byId[mid];
+    if (!m) return `<div class="u" style="grid-column:${c};grid-row:${r}"><div class="rotlab">${lab || '&nbsp;'}</div><span class="dkt" style="border:2px dashed var(--line);border-radius:9px"></span><div class="nm note">no fit</div></div>`;
+    const st = t.map.stats[pos] || { atk: 0, def: 0, ki: 0 };
+    const ex = st.ex;
+    const condTxt = cs => cs.map(c => `${c.met ? '✓' : '✗'} ${c.need}${c.have != null ? ` (team has ${c.have})` : ''}${c.scope === 'turn' ? ', same turn' : ''}${!c.met && c.alt ? ' or other ways (spheres/turns)' : ''}`).join('\n');
+    const bestTxt = ex ? { base: `Better in this team: stay as ${m.name}`, ex: `Better in this team: exchange into ${ex.name}`, either: 'Both forms are about even in this team', shown: `Shown after the exchange: it lasts longer in this event than ${ex.name}. It starts as ${ex.name}: exchange${st.exchangeTurn ? ' from turn ' + st.exchangeTurn : ''} as soon as you can.` }[st.bestForm] : '';
+    const exTip = ex ? `Reversible Exchange into ${ex.name}. After the swap: L ${ex.boost}% · F ${ex.fboost}% · ⚔ ${ex.atk}% · 🛡 ${ex.def}% · Ki ${ex.ki}`
+      + (ex.covered ? '' : ' (not boosted by the leaders!)') + (ex.stacker ? ' · stacks' : '')
+      + `\nTeam conditions: this form ${st.condsMet}/${st.conds.length}, after the swap ${ex.condsMet}/${ex.conds.length}\n${bestTxt}` : '';
+    const sv = st.surv;
+    const fmtK = x => x >= 1e6 ? (x / 1e6).toFixed(2) + 'M' : Math.round(x / 1e3) + 'k';
+    const pTxt = l => l.all ? 'never takes damage' : l.never ? 'takes damage the whole way'
+      : l.from ? `safe from phase ${l.from} ${l.toEnd ? 'to the end' : `up to phase ${l.phase}`}` : l.phase ? `safe up to phase ${l.phase}, hit from phase ${l.breaksAt.phase} (${l.breaksAt.enemy})` : `takes damage from phase 1 (${l.breaksAt.enemy})`;
+    const survTip = sv ? `${sv.eventName} (neutral match-up)\n`
+      + (sv.needed ? `DEF needed for 0 damage all event: ${fmtK(sv.needed.normal.need)} vs normal attacks, ${fmtK(sv.needed.super.need)} vs Super Attacks\n` : '')
+      + `• First turn, DEF ${fmtK(sv.fresh)}: normal attacks ${pTxt(sv.freshLasts.normal)}; Super Attacks ${pTxt(sv.freshLasts.super)}\n`
+      + `• By the end${sv.role && sv.role !== 'first' ? ` (attacks ${sv.role === 'second' ? '2nd' : 'as a floater'}: counted as if the unit before it always kills)` : ''}, DEF ${fmtK(sv.stacked)}: normal attacks ${pTxt(sv.stackedLasts.normal)}; Super Attacks ${pTxt(sv.stackedLasts.super)}\n`
+      + (sv.ifAttacks ? `• If it attacks every time it's out, DEF ${fmtK(sv.ifAttacks.stacked)}: normal attacks ${pTxt(sv.ifAttacks.lasts.normal)}; Super Attacks ${pTxt(sv.ifAttacks.lasts.super)}\n` : '')
+      + (sv.swap ? `⇄ Stacked enough to give up the 1st slot: ${sv.swap.normal ? `vs normal attacks at ${fmtK(sv.swap.normal.def)} (around phase ${sv.swap.normal.phase})` : 'never vs normal attacks'}, ${sv.swap.super ? `vs Super Attacks at ${fmtK(sv.swap.super.def)} (phase ${sv.swap.super.phase})` : 'never vs Super Attacks'}\n` : '')
+      + `Guard ${sv.kit.guard ? 'yes' : 'no'} · damage reduction ${sv.kit.dr}% · ${sv.state} stats, full Hidden Potential` : '';
+    const swapChip = sv?.swap ? `<span class="chip sw ${sv.swap.normal ? 'ok' : ''}" title="${esc(sv.swap.normal
+      ? `Stacker: once it has ${fmtK(sv.swap.normal.def)} DEF (around phase ${sv.swap.normal.phase}) it is safe vs normal attacks for the rest of the event, even if it stops attacking. Then you can swap the rotation so another unit attacks 1st.`
+      : 'Stacker: it never stacks enough for the whole event, so let it attack 1st as long as you can. Details show how far it lasts if you swap at different phases.')}">⇄ ${sv.swap.normal ? 'done P' + sv.swap.normal.phase : 'keep stacking'}</span>` : '';
+    // colour relative to the event's length: green near the end, amber past ~60%, red before
+    const sp = sv ? sv.stackedLasts.normal.phase : 0, share = sv ? sp / sv.phases : 0;
+    const survChip = sv ? `<span class="chip s ${share >= 0.9 ? 'all' : share >= 0.6 ? 'some' : 'none'}" title="${esc(survTip)}">🛡 ${
+      sv.stackedLasts.normal.all ? 'all ' + sv.phases : sv.stackedLasts.normal.never ? 'P0/' + sv.phases
+        : (sv.stackedLasts.normal.from ? 'P' + sv.stackedLasts.normal.from + '→' : 'P') + (sv.stackedLasts.normal.toEnd ? 'end' : sp + '/' + sv.phases)}</span>` : '';
+    const condChip = st.conds?.length ? `<span class="chip c ${st.condsMet === st.conds.length ? 'all' : st.condsMet ? 'some' : 'none'}" title="${esc('Passive conditions that depend on the team:\n' + condTxt(st.conds))}">Team ${st.condsMet}/${st.conds.length}</span>` : '';
+    const tags = (isFriend ? '' : tagOf(m) + (m.stacker ? '<span class="tag stack">STACK</span>' : ''))
+      + (ex ? `<span class="tag xch${ex.covered ? '' : ' bad'}" title="${esc(exTip)}">⇄ EXCHANGE</span>` : '');
+    const lead = m.covered ? `<span class="chip l">L ${m.boost}%</span><span class="chip f">F ${m.fboost}%</span>` : '<span class="chip x">no leader boost</span>';
+    const kiTip = `Ki at the start of a turn before spheres: ${st.kiLeader} from leader skills + ${st.kiLinks} from links + ${st.kiPassive} from its passive. 12 Ki launches the Super Attack.`
+      + (st.lowKi ? ' Likely short: it needs many Ki spheres.' : '');
+    const unitJson = esc(JSON.stringify({ id: m.id, name: m.name, title: m.title, rarity: m.rarity, cls: m.cls, type: m.type }));
+    return `<div class="u" data-pos="${pos}" data-unit='${unitJson}' data-stats="${st.atk},${st.def},${st.ki}" style="grid-column:${c};grid-row:${r}" title="${esc(m.title)} - ${esc(m.name)}">
+      <div class="rotlab">${lab || '&nbsp;'}</div>${dktB(m, isLead ? 'L' : isFriend ? 'F' : '')}
+      <div class="tags">${tags}</div><div class="nm">${esc(m.name)}</div>
+      <div class="chips">${lead}</div>
+      <div class="chips"><span class="chip a">⚔ ${st.atk}%</span><span class="chip d">🛡 ${st.def}%</span><span class="chip k${st.lowKi ? ' low' : ''}" title="${esc(kiTip)}">Ki ${st.ki}${st.lowKi ? '!' : ''}</span>${condChip}${survChip}${swapChip}</div>
+      ${ex ? `<div class="exline" title="${esc(exTip)}">${{ base: '✓ Stay', ex: '⇄ Better swapped', either: '⇄ Either form', shown: `⇄ Exchanged form · starts as` }[st.bestForm]} ${st.bestForm === 'shown' ? `${esc(ex.name)}${st.exchangeTurn ? ', swap from turn ' + st.exchangeTurn : ''}` : `· (⇄ ${esc(ex.name)}: ⚔ ${ex.atk}% · Ki ${ex.ki})`}</div>` : ''}</div>`;
+  }).join('');
+  const fname = pos => { const m = pos === 'f3' ? t.friend : byId[t.map.slots[pos]]; return m ? m.name : ''; };
+  const legend = [['r', 'rotation partners'], ['f1', '↔ ' + fname('f1')], ['f2', '↔ ' + fname('f2')], ['f3', '↔ friend']]
+    .map(([k, txt]) => `<span><i style="background:${EDGE_COL[k]}"></i>${esc(txt)}</span>`).join('') + '<span>· one line = one shared link · ⚔/🛡 = link bonus at max level · Ki = starting Ki before spheres (hover it)</span>';
+  const who = Object.fromEntries(Object.keys(POS_GRID).map(p => {
+    const m = p === 'f3' ? t.friend : byId[t.map.slots[p]];
+    const b = baseOf(m);
+    return [p, m ? { id: b.id, name: b.name, pick: !!m.pick, mine: !!(m.mine ?? m.pick), owned: !!m.owned } : null];
+  }));
+  const subs = t.members.slice(1).map(m => baseOf(m).id);
+  return `<div class="rmap" id="${id}" data-leader="${esc(baseOf(L0(t)).id)}" data-leadername="${esc(baseOf(L0(t)).name)}" data-friend="${esc(baseOf(t.friend).id)}" data-subs="${esc(subs.join(','))}"
+    data-who='${esc(JSON.stringify(who))}' data-swaps='${esc(JSON.stringify((t.swaps || []).map(s => s.id)))}'
+    data-links='${esc(JSON.stringify(t.map.edges.map(e => [e.a, e.b, e.links])))}'
+    data-surv='${esc(JSON.stringify(Object.fromEntries(Object.entries(t.map.stats).filter(([, s]) => s.surv).map(([p, s]) => [p, { b: s.surv, x: s.ex?.surv || null }]))))}'
+    data-conds='${esc(JSON.stringify(Object.fromEntries(Object.entries(t.map.stats).map(([p, s]) => [p, { b: s.conds || [], x: s.ex?.conds || null, best: s.bestForm || null, exName: s.ex?.name || null }]))))}'
+    data-edges='${esc(JSON.stringify(t.map.edges.map(e => [e.a, e.b, e.links.length, edgeColor(e)])))}'><svg></svg>${cells}</div>
+    <div class="legend">${legend}</div>
+    <p class="note" style="margin:6px 0 0">Tap a unit for details, to replace it, or to mark it as one you don’t have.</p>`;
+}
+
+function drawMaps() {
+  document.querySelectorAll('.rmap').forEach(map => {
+    if (map.offsetParent === null) return;              // hidden (e.g. collapsed other leaders)
+    const svg = map.querySelector('svg'), mr = map.getBoundingClientRect();
+    const c = pos => { const el = map.querySelector(`.u[data-pos="${pos}"] .dkt`); if (!el) return null;
+      const r = el.getBoundingClientRect(); return { x: r.left - mr.left + r.width / 2, y: r.top - mr.top + r.height / 2, w: r.width / 2 }; };
+    let out = '';
+    for (const [a, b, n, col] of JSON.parse(map.dataset.edges)) {
+      const p = c(a), q = c(b); if (!p || !q) continue;
+      const x1 = p.x + p.w * 0.95, x2 = q.x - q.w * 0.95, dx = (x2 - x1) * 0.5;
+      for (let i = 0; i < n; i++) {
+        const off = (i - (n - 1) / 2) * 6;
+        out += `<path d="M${x1},${p.y + off} C${x1 + dx},${p.y + off * 3} ${x2 - dx},${q.y + off * 3} ${x2},${q.y + off}" stroke="${col}" stroke-width="2.2" fill="none" opacity=".85"/>`;
+      }
+    }
+    svg.setAttribute('viewBox', `0 0 ${mr.width} ${mr.height}`);
+    svg.innerHTML = out;
+  });
+}
+addEventListener('resize', debounce(() => { drawMaps(); drawSkel(); }, 100));
+// Redraw whenever a map changes size (window resize, Fold unfold, other leaders opened, fonts loading).
+const mapObserver = new ResizeObserver(debounce(drawMaps, 50));
+new MutationObserver(() => document.querySelectorAll('.rmap:not([data-obs])').forEach(m => { m.dataset.obs = 1; mapObserver.observe(m); }))
+  .observe(document.body, { childList: true, subtree: true });
+// ===== unit tap menu → Replace picker / Details (modelled on DokkanStats) =====
+let ctx = null;   // { map, pos, me } of the unit the menu / picker / details were opened from
+const mapCtx = (map, pos) => ({ map, pos, me: JSON.parse(map.dataset.who)[pos], leader: map.dataset.leader, leadername: map.dataset.leadername });
+
+function closeMenu() { document.querySelectorAll('.umenu').forEach(m => m.remove()); document.querySelectorAll('.rmap .u.on').forEach(x => x.classList.remove('on')); }
+document.addEventListener('click', e => {
+  if (!(e.target instanceof Element)) return;
+  if (e.target.closest('.umenu')) return;
+  const u = e.target.closest('.rmap .u[data-pos]');
+  closeMenu();
+  if (!u) return;
+  const map = u.closest('.rmap'); ctx = mapCtx(map, u.dataset.pos);
+  const { pos, me } = ctx; if (!me) return;
+  u.classList.add('on');
+  const isFriend = pos === 'f3', nSwaps = JSON.parse(map.dataset.swaps).length;
+  const items = [['details', '🔍', 'Details', '']];
+  if (!isFriend && !me.pick) items.push(['replace', '⇄', 'Replace…', `${nSwaps} fit`], ['nothave', '✕', 'I don’t have it', 'auto-pick', 'hot']);
+  if (!isFriend && me.pick) items.push(['replace', '⇄', 'Replace…', `${nSwaps} fit`], ['unpick', '−', 'Remove from tray', '']);
+  if (!isFriend && pos !== 'r1a') items.push(['lead', '♛', 'Make leader', '']);
+  const menu = document.createElement('div');
+  menu.className = 'umenu';
+  menu.innerHTML = `<div class="mh">${dkt(JSON.parse(u.dataset.unit))}<div><b>${esc(me.name)}</b><span>${esc(u.title.split(' - ')[0])}${(me.mine ?? me.pick) ? ' · YOUR PICK' : me.owned ? ' · OWNED' : ' · MISSING'}</span></div></div>` +
+    items.map(([k, i, label, small, hot]) => `<div class="mi ${hot || ''}" data-act="${k}"><i>${i}</i>${label}${small ? `<small>${small}</small>` : ''}</div>`).join('') +
+    (isFriend ? '<div class="mi dim">The friend is borrowed: no need to own it.</div>' : '');
+  document.body.appendChild(menu);
+  const r = u.querySelector('.dkt').getBoundingClientRect(), mw = menu.offsetWidth, mh = menu.offsetHeight;
+  let left = r.right + 8, top = r.top + scrollY;
+  if (left + mw > innerWidth - 8) left = Math.max(8, r.left - mw - 8);
+  if (left < 8 || left + mw > innerWidth - 8) left = Math.max(8, (innerWidth - mw) / 2);
+  if (r.top + mh > innerHeight - 8) top = Math.max(scrollY + 8, scrollY + innerHeight - mh - 8);
+  menu.style.left = left + 'px'; menu.style.top = top + 'px';
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { closeMenu(); closeModal(); }
+  // Backspace = back, unless you're typing in a field
+  if (e.key === 'Backspace' && !(e.target instanceof Element && e.target.closest('input, textarea'))) {
+    const back = document.querySelector('.modal')?._back;
+    if (back) { e.preventDefault(); back.go(); }
+  }
+});
+
+function doNotHave(c) {
+  excludeUnit(c.me);
+  keepLeader = c.pos === 'r1a' ? null : { id: c.leader, name: c.leadername };
+  saveRepl(); closeModal(); runBuild();
+}
+document.addEventListener('click', e => {
+  if (!(e.target instanceof Element)) return;
+  const it = e.target.closest('.umenu [data-act]'); if (!it || !ctx) return;
+  const c = ctx, act = it.dataset.act;
+  closeMenu();
+  if (act === 'details') openDetails(c.me.id, c);
+  else if (act === 'replace') openPicker(c);
+  else if (act === 'nothave') doNotHave(c);
+  else if (act === 'unpick') { picks = picks.filter(p => p.id !== c.me.id); releaseLeader(); renderResults(); renderTray(); runBuild(); }
+  else if (act === 'lead') { keepLeader = { id: c.me.id, name: c.me.name }; saveRepl(); runBuild(); }
+});
+
+// ----- full-screen window (centred window on PC / unfolded Fold) -----
+// back: optional { label, go } to return to the window this one was opened from (e.g. exchange form -> base unit).
+function openModal(title, html, tint, back) {
+  closeModal();
+  const m = document.createElement('div');
+  m.className = 'modal';
+  m.innerHTML = `<div class="mwin${tint ? ' tinted' : ''}" ${tint ? `style="--tint:var(--dk-${tint.toLowerCase()})"` : ''}>
+    <div class="mtop">${back ? `<button class="mback" title="Back to ${esc(back.label)} (Backspace)" aria-label="Back">‹</button>` : ''}<b>${title}</b>
+      <button class="mclose" title="Close (Esc)" aria-label="Close">✕</button></div><div class="mbody">${html}</div></div>`;
+  m.addEventListener('click', e => {
+    if (e.target.closest('.mback')) return back.go();
+    if (e.target === m || e.target.closest('.mclose')) closeModal();
+  });
+  m._back = back || null;
+  document.body.appendChild(m);
+  document.body.classList.add('noscroll');
+  return m;
+}
+function closeModal() { document.querySelectorAll('.modal').forEach(m => m.remove()); document.body.classList.remove('noscroll'); }
+
+// ----- Replace picker: each candidate shows what it would get in this slot -----
+function openPicker(c) {
+  const map = c.map, isLeadSlot = c.pos === 'r1a';
+  const m = openModal('REPLACE UNIT', `
+    <div class="replacing">${dkt(JSON.parse(map.querySelector(`.u[data-pos="${c.pos}"]`).dataset.unit))}<div>Replacing <b>${esc(c.me.name)}</b>${
+      isLeadSlot ? ' · the new unit becomes leader' : ` · leader stays ${esc(c.leadername)}`}</div></div>
+    <div class="seg"><span class="on" data-tab="smart">Smart</span><span data-tab="box">My box</span><span data-tab="stack">Stackers</span></div>
+    <input type="text" class="psearch" placeholder="🔍  Search any unit…">
+    <div class="boxf">My box: <span class="on" data-own="all">All</span><span data-own="first">Owned first</span><span data-own="only">Owned only</span></div>
+    <div class="cands"><p class="loading">Working out each option in this slot…</p></div>`);
+  let list = [], tab = 'smart', own = 'all';
+  const render = () => {
+    let l = list.slice();
+    if (tab === 'box' || own === 'only') l = l.filter(x => x.owned || x.current);
+    if (tab === 'stack') l = l.filter(x => x.stacker || x.current);
+    if (own === 'first') l.sort((a, b) => (b.owned - a.owned) || (b.score - a.score));
+    m.querySelector('.cands').innerHTML = l.map(x => `<div class="cand${x.current ? ' cur' : ''}${x.best ? ' best' : ''}" data-cand="${esc(x.id)}" title="${esc(x.title)} - ${esc(x.name)}">
+      <span class="info" data-info="${esc(x.id)}">i</span>${dkt(x)}
+      <div class="chips">${x.current ? '<span class="tag miss">CURRENT</span>' : ''}${x.owned ? '<span class="tag own">OWNED</span>' : ''}${x.stacker ? '<span class="tag stack">STACK</span>' : ''}</div>
+      <div class="nm">${esc(x.name)}</div>
+      <div class="chips">${x.covered ? `<span class="chip l">L ${x.boost}%</span><span class="chip f">F ${x.fboost}%</span>` : '<span class="chip x">no leader boost</span>'}</div>
+      ${x.teamBoost != null ? `<div class="chips"><span class="chip l" title="This unit's leader skill summed over the whole team">Team +${x.teamBoost}%</span>${
+        x.uncovered?.length ? `<span class="chip x" title="${esc('As leader, it would not boost: ' + x.uncovered.join(', '))}">misses ${x.uncovered.length}</span>` : ''}</div>` : ''}
+      <div class="chips"><span class="chip a">⚔ ${x.atk}%</span><span class="chip d">🛡 ${x.def}%</span><span class="chip k${x.lowKi ? ' low' : ''}">Ki ${x.ki}${x.lowKi ? '!' : ''}</span></div>
+      ${x.exchange ? `<div class="exline" title="After the Reversible Exchange: L ${x.exchange.boost}% · F ${x.exchange.fboost}% · ⚔ ${x.exchange.atk}% · 🛡 ${x.exchange.def}% · Ki ${x.exchange.ki}">⇄ then ⚔ ${x.exchange.atk}% · Ki ${x.exchange.ki}</div>` : ''}</div>`).join('')
+      || '<p class="note">Nothing here: try another tab or search.</p>';
+  };
+  let loadSeq = 0;   // only the latest list is shown (a slow earlier one arriving late is ignored)
+  const load = async cands => {
+    const seq = ++loadSeq;
+    m.querySelector('.cands').innerHTML = '<p class="loading">Working out each option in this slot…</p>';
+    const q = new URLSearchParams({ leader: isLeadSlot ? c.me.id : c.leader, slot: c.me.id, subs: map.dataset.subs,
+      cands: cands.join(','), festival: $('#event').value ? '1' : '0', friend: map.dataset.friend || '',
+      picks: picks.map(p => p.id).join(','), exclude: excluded.map(x => x.id).join(',') });
+    try { const res = await api('/api/swap?' + q); if (seq !== loadSeq) return; list = res; render(); }
+    catch (e) { if (seq === loadSeq) m.querySelector('.cands').innerHTML = `<p class="note">Error: ${esc(e.message)}</p>`; }
+  };
+  lastPicker = c;   // so a unit's ⓘ details opened from here can come back to this picker
+  const base = [...JSON.parse(map.dataset.swaps), ...box.map(b => b.id)].filter((v, i, a) => a.indexOf(v) === i && v !== c.me.id);
+  load(base);
+  m.querySelectorAll('[data-tab]').forEach(s => s.onclick = () => { m.querySelectorAll('[data-tab]').forEach(x => x.classList.toggle('on', x === s)); tab = s.dataset.tab; render(); });
+  m.querySelectorAll('[data-own]').forEach(s => s.onclick = () => { m.querySelectorAll('[data-own]').forEach(x => x.classList.toggle('on', x === s)); own = s.dataset.own; render(); });
+  m.querySelector('.psearch').oninput = debounce(async ev => {
+    const q = ev.target.value.trim();
+    if (q.length < 3) return load(base);
+    const seq = loadSeq;
+    try {
+      const found = (await api('/api/search?q=' + encodeURIComponent(q))).filter(u => u.rarity === 'LR' || u.rarity === 'UR').slice(0, 15).map(u => u.id);
+      if (seq === loadSeq) load(found);
+    } catch (e) { m.querySelector('.cands').innerHTML = `<p class="note">Search failed: ${esc(e.message)}</p>`; }
+  }, 400);
+  m.querySelector('.cands').onclick = e => {
+    if (e.target.closest('[data-info]')) return;
+    const el = e.target.closest('[data-cand]'); if (!el) return;
+    const s = list.find(x => x.id === el.dataset.cand);
+    if (s.current) return closeModal();
+    // check the tray has room BEFORE changing anything, so a refused swap leaves no trace
+    const room = picks.length - (c.me.pick ? 1 : 0) < MAX || picks.some(p => p.id === s.id);
+    if (!room) return alert('The tray is full (6). Remove a pick first.');
+    if (!c.me.pick && !c.me.owned) excludeUnit(c.me);
+    if (c.me.pick) picks = picks.filter(p => p.id !== c.me.id);
+    if (!picks.some(p => p.id === s.id)) {
+      if (picks.length >= MAX) return alert('The tray is full (6). Remove a pick first.');
+      picks.push(slimUnit(s));
+    }
+    keepLeader = isLeadSlot ? { id: s.id, name: s.name } : { id: c.leader, name: c.leadername };
+    saveRepl(); renderResults(); renderTray(); closeModal(); runBuild();
+  };
+}
+
+// ----- Details: full unit page tinted in its type colour -----
+async function openDetails(id, c) {
+  const m = openModal('UNIT DETAILS', '<p class="loading" style="padding:16px">Loading…</p>', null, c?.back);
+  let d;
+  const friendId = c?.map?.dataset.friend || c?.friendId;
+  // Team conditions for this unit in this team (from the map), or for an exchange form (passed along).
+  const cd = c?.map && c.pos ? JSON.parse(c.map.dataset.conds || '{}')[c.pos] : null;
+  const condsHere = c?.isForm ? c.formConds : cd?.b;
+  // Festival survival for this unit in this team (or for the exchange form, passed along)
+  const svAll = c?.map && c.pos ? JSON.parse(c.map.dataset.surv || '{}')[c.pos] : null;
+  const svHere = c?.isForm ? c.formSurv : svAll?.b;
+  const survHtml = sv => {
+    if (!sv) return '';
+    const k = x => x >= 1e6 ? (x / 1e6).toFixed(2) + 'M' : Math.round(x / 1e3) + 'k';
+    // One cell = what happens with this much DEF: safe all event, safe up to a phase, or hurt from the very first phase.
+    const p = l => l.all ? `<b class="ok">✓ Never takes damage</b>`
+      : l.never ? `<b class="bad">Takes damage the whole way</b><br><span class="note">never enough DEF for any enemy</span>`
+      : l.from ? `<b>${l.toEnd ? `Safe from phase ${l.from} to the end` : `Safe from phase ${l.from} up to phase ${l.phase}`}</b><br><span class="note">hurt before phase ${l.from} (not stacked yet)${l.toEnd ? '' : `, again from phase ${l.breaksAt.phase} (${esc(l.breaksAt.enemy)})`}</span>`
+      : l.phase ?`<b>Safe up to phase ${l.phase}</b><br><span class="note">starts taking damage at phase ${l.breaksAt.phase} (${esc(l.breaksAt.enemy)})</span>`
+      : `<b class="bad">Takes damage from phase 1</b><br><span class="note">${esc(l.breaksAt.enemy)} already gets through</span>`;
+    const need = n => `<b>${k(n.need)}</b><br><span class="note">for ${esc(n.enemy)} (phase ${n.phase})</span>`;
+    const kit = sv.kit;
+    // Where it attacks from decides whether it gets to stack: the 1st attacker always hits; the 2nd and the floater
+    // only attack if the enemy is still standing.
+    const slotTxt = { first: 'attacks <b>1st</b> in its rotation, so it always gets its attack in',
+      second: 'attacks <b>2nd</b> in its rotation: when the unit before it kills the enemy, it doesn\'t attack',
+      floater: 'is a <b>floater</b> (3rd slot, out about one turn in three): when the units before it kill the enemy, it doesn\'t attack' }[sv.role] || '';
+    const blockedCase = sv.role !== 'first';
+    const tip = blockedCase && sv.attackStacker
+      ? `<p class="tipline">💡 It stacks DEF by attacking, but from this slot it often won't get to. Put it <b>1st in a rotation</b> to make its stacks count.</p>` : '';
+    const atLabel = blockedCase ? 'its DEF there if it never attacks' : 'its DEF there';
+    return `<div class="sec surv"><h4>🛡 Survival · ${esc(sv.eventName.replace(/^.*?! /, ''))}</h4><div class="panel"><div class="pad">
+      ${sv.needed ? `<p style="margin:0 0 6px">To take <b>no damage at all</b> for the whole event, this unit needs
+        <b>${k(sv.needed.normal.need)} DEF</b> against normal attacks and <b>${k(sv.needed.super.need)} DEF</b> against Super Attacks.
+        It has <b>${k(sv.fresh)}</b> on its first turn and <b>${k(sv.stacked)}</b> by the last enemy${blockedCase ? ' if it never gets to attack' : ''}.</p>` : ''}
+      <p style="margin:0 0 8px" class="note">In this team it ${slotTxt}.</p>${tip}
+      ${(() => {   // what it stacks: ATK and DEF can differ (e.g. "raises ATK, greatly raises DEF for 1 turn" = ATK stacks, DEF doesn't)
+        const what = [];
+        if (sv.atkStacks) what.push('its <b>ATK stacks</b> with each Super Attack (permanent)');
+        if (kit.saStack) what.push(`its <b>DEF stacks</b> +${kit.saStack}% with each Super Attack (permanent)`);
+        else if (kit.saDefTurn) what.push(`its Super raises DEF +${kit.saDefTurn}% <b>for 1 turn only</b>, so DEF doesn't stack (counted out: it only helps against hits that land after its attack)`);
+        if (kit.bySlot?.length) what.push(`from this slot: “${kit.bySlot.map(esc).join('”, “')}” counts (e.g. its guard)`);
+        return what.length ? `<p class="note" style="margin:0 0 8px">Stacking: ${what.join('; ')}.</p>` : '';
+      })()}
+      <table><tr><th></th><th>Its DEF</th><th>Normal attacks</th><th>Super Attacks</th></tr>
+        ${sv.needed ? `<tr class="need"><td><b>DEF needed</b><br><span class="note">0 damage all event</span></td><td></td><td>${need(sv.needed.normal)}</td><td>${need(sv.needed.super)}</td></tr>` : ''}
+        <tr><td>First turn<br><span class="note">no stacks yet</span></td><td><b>${k(sv.fresh)}</b></td><td>${p(sv.freshLasts.normal)}</td><td>${p(sv.freshLasts.super)}</td></tr>
+        ${blockedCase ? `<tr><td>If it never attacks<br><span class="note">the unit before it kills every enemy</span></td><td><b>${k(sv.stacked)}</b></td><td>${p(sv.stackedLasts.normal)}</td><td>${p(sv.stackedLasts.super)}</td></tr>
+        <tr><td>If it attacks every time it's out<br><span class="note">about ${sv.supersByEnd} Super Attacks by the end</span></td><td><b>${k(sv.ifAttacks.stacked)}</b></td><td>${p(sv.ifAttacks.lasts.normal)}</td><td>${p(sv.ifAttacks.lasts.super)}</td></tr>`
+        : `<tr><td>Stacking through the run<br><span class="note">about ${sv.supersByEnd} Super Attacks by the end</span></td><td><b>${k(sv.stacked)}</b></td><td>${p(sv.stackedLasts.normal)}</td><td>${p(sv.stackedLasts.super)}</td></tr>`}</table>
+      ${sv.swap ? (() => {
+        const w = sv.swap;
+        const ready = (r, what) => r ? `<b class="ok">✓ ${what}: enough once it reaches ${k(r.def)}</b> <span class="note">(around phase ${r.phase})</span>`
+          : `<b class="bad">${what}: never enough for the whole event</b> <span class="note">(the longer it stays 1st, the further it lasts)</span>`;
+        const res = x => x.now ? '<span class="bad">already hurt</span>' : x.end ? '<b class="ok">to the end ✓</b>' : `phase ${x.until}`;
+        return `<h5 class="lastH">⇄ When can it give up the 1st slot?
+          <span class="note">(its Super Attack stacks stay when it stops attacking; counted as if it attacks 1st every time it's out)</span></h5>
+          <p style="margin:0 0 4px">${ready(w.normal, 'vs normal attacks')}<br>${ready(w.super, 'vs Super Attacks')}</p>
+          ${w.normal || w.super ? `<p class="note" style="margin:0 0 6px">From then on you can swap your rotation and give the 1st slot to another stacker.</p>` : ''}
+          ${(() => {   // when stacking longer stops paying off: the first swap point that already lasts as far as the later ones
+            if (w.normal || w.marks.length < 2) return '';
+            const far = m => m.normal.end ? Infinity : m.normal.until || 0;
+            const best = Math.max(...w.marks.map(far));
+            const first = w.marks.find(m => far(m) >= best - 1);
+            return best > 0 && first !== w.marks[w.marks.length - 1]
+              ? `<p class="tipline">💡 Swapping it out at <b>phase ${first.phase}</b> already gets it to ${best === Infinity ? 'the end' : 'phase ' + best} vs normal attacks: stacking longer adds little, so another stacker can take the 1st slot then.</p>` : '';
+          })()}
+          ${w.marks.length ? `<table class="last"><tr><th>If it stops attacking at</th><th>Its DEF</th><th>Safe vs normal until</th><th>Safe vs Supers until</th></tr>
+            ${w.marks.map(m => `<tr><td>phase ${m.phase}</td><td>${k(m.def)}</td><td>${res(m.normal)}</td><td>${res(m.super)}</td></tr>`).join('')}</table>` : ''}`;
+      })() : ''}
+      ${sv.lastEnemies?.length ? `<h5 class="lastH">Last ${sv.lastEnemies.length} enemies · DEF needed for 0 damage
+        <span class="note">(✓ = ${atLabel} is enough)</span></h5>
+      <table class="last"><tr><th>Phase</th><th>Enemy</th><th>Its DEF${blockedCase ? '<br><span class="note">never attacks / attacks</span>' : ''}</th><th>Normal attacks</th><th>Super Attacks</th></tr>
+        ${sv.lastEnemies.map(e => {
+          const have = e.def ?? sv.stacked;
+          const cell = n => have >= n ? `<b class="ok">${k(n)} ✓</b>` : `<b class="bad">${k(n)}</b> <span class="note">short ${k(n - have)}</span>`;
+          const defCell = blockedCase && e.defIfAttacks != null ? `${k(have)} <span class="note">/ ${k(e.defIfAttacks)}</span>` : k(have);
+          return `<tr><td>${e.phase}</td><td>${esc(e.enemy)}${e.crit ? ' <span class="note">(crits ×1.5)</span>' : ''}</td><td>${defCell}</td><td>${cell(e.normal)}</td><td>${cell(e.super)}</td></tr>`;
+        }).join('')}</table>` : ''}
+      <div class="note" style="margin-top:8px">Kit: ${kit.guard ? 'guards all attacks · ' : ''}damage reduction ${kit.dr}% · passive DEF +${kit.start}%${kit.receiving ? ` (+${kit.receiving}% when hit)` : ''}${
+        kit.stackCap ? ` · stacks up to +${kit.stackCap}% DEF from its passive` : ''}${kit.saStack ? ` · +${kit.saStack}% DEF per Super Attack (permanent)` : ''}.
+        Base DEF ${sv.base.toLocaleString()} (${esc(sv.state)}, full Hidden Potential), with both leader skills and its active links.
+        Neutral, same-class match-up: type advantage helps a lot, a disadvantage hurts. Enemies that can crit are counted at their worst (×1.5).
+        Enemy stats from DokkanInfo; formula from DokkanStats.</div>
+    </div></div></div>`;
+  };
+  const condMark = cond => {
+    const hit = (condsHere || []).find(x => x.cond === cond); if (!hit) return '';
+    const why = `${hit.need}${hit.have != null ? `: team has ${hit.have}` : ''}${hit.scope === 'turn' ? ' (same turn)' : ''}`;
+    return hit.met ? `<span class="cmark met" title="${esc(why)}">✓ met in this team</span>`
+      : `<span class="cmark unmet" title="${esc(why)}">✗ not met${hit.alt ? ' by the team' : ''}</span>`;
+  };
+  try { d = await api('/api/unit?id=' + id + (c?.leader ? '&leader=' + c.leader : '') + (friendId ? '&friend=' + friendId : '')); }
+  catch (e) { m.querySelector('.mbody').innerHTML = `<p class="note" style="padding:16px">Error: ${esc(e.message)}</p>`; return; }
+  m.querySelector('.mwin').classList.add('tinted');
+  m.querySelector('.mwin').style.setProperty('--tint', `var(--dk-${d.type.toLowerCase()})`);
+  // Links active in the team: shared with a neighbour on the map.
+  let active = null;
+  if (c?.map) {
+    active = new Set(JSON.parse(c.map.dataset.links).filter(([a, b]) => a === c.pos || b === c.pos).flatMap(([, , l]) => l));
+  }
+  const st = c?.map ? (c.map.querySelector(`.u[data-pos="${c.pos}"]`).dataset.stats || '') : '';
+  const [atk, def, ki] = st.split(',');
+  const fromMap = c?.map && c.pos !== 'f3';
+  const inTray = picks.some(p => p.id === d.id);
+  const acts = c?.isForm
+    ? `<div class="acts"><span class="off">⇄ The form this unit swaps into during battle</span></div>`
+    : fromMap
+    ? `<div class="acts"><span data-dact="replace">⇄ Replace</span>${c.me.pick ? '<span data-dact="unpick">− Remove from tray</span>' : '<span class="danger" data-dact="nothave">✕ I don’t have it</span>'}</div>`
+    : `<div class="acts">${inTray ? '<span class="off">✓ In your team tray</span>' : '<span data-dact="add">＋ Add to team tray</span>'}</div>`;
+  const mark = t => esc(t).replace(/▲/g, '<span class="up">▲</span>').replace(/▼/g, '<span class="down">▼</span>');
+  m.querySelector('.mbody').innerHTML = `
+    <div class="hero">${dkt(d)}<div><b>${esc(d.name)}</b><div class="s">${esc(d.title)} · ${esc(d.rarity)} ${esc(d.cls)} ${esc(d.type)}${d.release ? ' · ' + esc(d.release) : ''}</div>
+      <div class="chips" style="justify-content:flex-start;margin-top:6px">${(c?.me?.mine ?? c?.me?.pick) ? '<span class="tag pick">YOUR PICK</span>' : ''}${
+        box.some(b => b.id === d.id) ? '<span class="tag own">OWNED</span>' : ''}${d.stacker ? '<span class="tag stack">STACK</span>' : ''}${
+        d.boost != null ? `<span class="chip l">L ${d.boost}%</span><span class="chip f">F ${d.fboost}%</span>` : ''}${atk ? `<span class="chip a">⚔ ${atk}%</span><span class="chip d">🛡 ${def}%</span>` : ''}${
+        ki ? `<span class="chip k">Ki ${ki}</span>` : ''}</div></div></div>
+    ${acts}
+    ${d.exchange ? `<div class="sec"><h4>⇄ Reversible Exchange</h4><div class="panel"><div class="pad"><div class="xform">${dkt(d.exchange)}
+      <div><b>${esc(d.exchange.name)}</b><div class="note">${esc(d.exchange.rarity)} ${esc(d.exchange.cls)} ${esc(d.exchange.type)}${d.exchange.stacker ? ' · <span class="tag stack">STACK</span>' : ''}</div>
+      <div class="chips" style="justify-content:flex-start">${d.exchange.boost != null ? `<span class="chip l">L ${d.exchange.boost}%</span><span class="chip f">F ${d.exchange.fboost}%</span>` : ''}</div></div>
+      <button class="xbtn" data-xform="${esc(d.exchange.id)}">Details ›</button></div>
+      ${d.exchange.links.length || d.exchange.lostLinks.length ? `<div class="note" style="margin-top:6px">Links after the swap: ${
+        d.exchange.links.map(l => `<span class="up">+ ${esc(l)}</span>`).join(' ')} ${d.exchange.lostLinks.map(l => `<span class="down">− ${esc(l)}</span>`).join(' ')}</div>` : ''}
+      ${cd?.best ? `<div class="bestform">${{ base: `✓ Better in this team: stay as ${esc(d.name)}`, ex: `⇄ Better in this team: exchange into ${esc(d.exchange.name)}`, either: '⇄ Both forms are about even in this team', shown: `⇄ Better in this event after the exchange: the team shows this form (it starts as ${esc(d.exchange.name)})` }[cd.best]}
+        <span class="note" style="font-weight:400">(team conditions met: ${(cd.b || []).filter(x => x.met).length}/${(cd.b || []).length} vs ${(cd.x || []).filter(x => x.met).length}/${(cd.x || []).length} after the swap)</span></div>` : ''}
+      </div></div></div>` : d.exchangeWith ? `<div class="sec"><h4>⇄ Reversible Exchange</h4><div class="panel"><div class="pad">Exchanges with ${esc(d.exchangeWith)}</div></div></div>` : ''}
+    ${survHtml(svHere)}
+    <div class="sec"><h4>Leader Skill</h4><div class="panel"><div class="pad">${mark(d.leaderSkill) || '<span class="note">none</span>'}</div></div></div>
+    <div class="sec"><h4>Super Attack${d.superAttack.name ? ' · ' + esc(d.superAttack.name) : ''}</h4><div class="panel"><div class="pad">${mark(d.superAttack.text)}${
+      d.superAttack.stacks.length ? ` <span class="inf">∞ STACKS ${esc(d.superAttack.stacks.join(' & '))}</span>` : ''}</div></div></div>
+    <div class="sec"><h4>Passive${condsHere ? ' <span class="note" style="font-weight:400">· ✓ / ✗ = condition met or not by this team</span>' : ''}</h4><div class="panel">${d.passive.map(p => `<div class="band">${esc(p.cond)}${condMark(p.cond)}</div><div class="lines">${
+      p.fx.map(f => `<div>${mark(f.text)}${f.stacks ? '<span class="inf">∞ STACK</span>' : ''}</div>`).join('')}</div>`).join('') || '<div class="pad note">none</div>'}</div></div>
+    <div class="sec"><h4>Links <span class="note" style="font-weight:400">· max level${active ? ' · bright = active in this team' : ''}</span></h4><div class="panel"><div class="pad">${
+      d.links.map(l => `<div class="lk${active && !active.has(l.name) ? ' off' : ''}"><span>${esc(l.name)}</span><i>${esc(l.effect)}</i></div>`).join('')}</div></div></div>
+    <div class="sec"><h4>Categories${d.boostedCats.length ? ' <span class="note" style="font-weight:400">· gold = boosted by your leader</span>' : ''}</h4>
+      <div class="cats">${d.categories.map(cat => `<span class="${d.boostedCats.includes(cat) ? 'hit' : ''}">${esc(cat)}</span>`).join('')}</div></div>`;
+  // "Details ›" on the exchange form opens that form's own page (with the same leaders).
+  // The way back reopens this exact page (same unit, same context), so you can go there and back as often as you like.
+  m.querySelector('[data-xform]')?.addEventListener('click', ev => openDetails(ev.currentTarget.dataset.xform, {
+    leader: c?.leader, friendId: c?.map?.dataset.friend || c?.friendId, isForm: true, formConds: cd?.x || null, formSurv: svAll?.x || null,
+    back: { label: d.name, go: () => openDetails(id, c) } }));
+  m.querySelector('.acts').onclick = e => {
+    const a = e.target.closest('[data-dact]')?.dataset.dact; if (!a) return;
+    if (a === 'replace') { closeModal(); openPicker(c); }
+    else if (a === 'nothave') doNotHave(c);
+    else if (a === 'unpick') { picks = picks.filter(p => p.id !== d.id); releaseLeader(); renderResults(); renderTray(); closeModal(); runBuild(); }
+    else if (a === 'add') {
+      if (picks.length >= MAX) return alert('The tray is full (6). Remove a pick first.');
+      picks.push(slimUnit(d)); releaseLeader(); renderResults(); renderTray(); closeModal();
+    }
+  };
+}
+let lastPicker = null;   // the Replace picker currently open, if any
+// ⓘ on any card (search, box, Also fits, picker) opens its details. From inside the Replace picker, ‹ goes back to it.
+document.addEventListener('click', e => {
+  if (!(e.target instanceof Element)) return;
+  const i = e.target.closest('[data-info]'); if (!i) return;
+  e.stopPropagation(); e.preventDefault();
+  const fromPicker = i.closest('.cands') && lastPicker;
+  const pc = lastPicker;
+  openDetails(i.dataset.info, fromPicker ? { back: { label: 'the Replace list', go: () => openPicker(pc) } } : null);
+}, true);
+document.addEventListener('click', e => {
+  if (!(e.target instanceof Element)) return;
+  const x = e.target.closest('[data-unex],[data-unlead],[data-unfriend],[data-backpicks]'); if (!x) return;
+  if (x.dataset.unex) excluded = excluded.filter(u => u.id !== x.dataset.unex);
+  else if ('unlead' in x.dataset) { keepLeader = null; keepFriend = null; }
+  else if ('unfriend' in x.dataset) keepFriend = null;
+  else if ('backpicks' in x.dataset) {   // your own picks again, and the builder chooses leader and friend again
+    picks = prevPicks || []; prevPicks = null; keepLeader = null; keepFriend = null;
+    savePicks(); renderResults(); renderTray();
+  }
+  saveRepl(); renderRepl();
+  if (picks.length) runBuild();
+});
+
+function board(t) {
+  const L = t.members[0];
+  // Only worth a line when you own something that could take the slot.
+  const missing = t.members.filter(m => !m.owned && m.alternative).map(m => `<div class="missing">MISSING ${esc(m.name)} → from your box instead: <b>${
+    esc(m.alternative.name)}</b> (${m.alternative.links} links${m.alternative.stacker ? ', stacker' : ''})</div>`).join('');
+  const notCovered = t.members.filter(m => !m.covered).map(m => esc(m.name));
+  return `<div class="board">
+    <div class="lf">
+      <div class="who"><div class="lab l">LEADER</div>${dkt(L)}<div class="nm">${esc(L.name)}</div><span class="teamtot">Team +${t.teamBoostL}%</span></div>
+      <div class="who"><div class="lab f">FRIEND</div>${dkt(t.friend)}<div class="nm">${esc(t.friend.name)}</div><span class="teamtot friendtot">Team +${t.teamBoostF}%</span></div>
+    </div>
+    ${rotationMap(t)}
+    <div class="leaderbox"><b>Leader:</b> ${esc(L.name)}: ${esc(t.leaderSkill)} · covers ${t.covered} / ${t.size}</div>
+    ${t.coverNote ? `<div class="missing covwarn">⚠ <b>${esc(t.coverNote)}</b>${t.kept ? ' Tap × next to "Leader kept" above to let the builder choose again.' : ''}</div>` : ''}
+    ${t.friendSkill ? `<div class="leaderbox friendbox"><b>Friend leader:</b> ${esc(t.friend.name)}: ${esc(t.friendSkill)}
+      <span class="note">· a different leader than yours: borrow it from a friend so its skill boosts the team too.
+      It's here for its leader skill (Team +${t.teamBoostF}%), not as a stacker: "stackers only" is for your 5 subs.${t.friend.stacker ? '' : ' It doesn\'t stack itself.'}</span></div>` : ''}
+    ${t.proven ? (() => {
+      const p = t.proven;
+      const top = p.top.map(u => `${esc(u.name)} (${u.n})`).join(', ');
+      return `<div class="simbox">📋 <b>${p.inClears} of this team's ${p.of} units</b> appear in the ${p.total} posted clears of this event${top ? `: ${top}` : ''}.
+        ${p.exact ? `<br>✓ <b class="ok">This exact team was posted as a clear${p.exact > 1 ? ` ${p.exact} times` : ''}.</b>` : ''}
+        ${[...new Set(Object.values(t.map.stats).filter(s => s.bestForm === 'shown').map(s => s.startsAs))].map(n => `<br>⇄ ${esc(n)}: shown in its exchanged form, which stays at 0 damage longer.`).join('')}</div>`;
+    })() : ''}
+    ${t.lowKi ? `<div class="missing">⚠ ${t.lowKi} unit(s) may lack Ki for their Super Attack (marked Ki …!): hover the Ki chip for the breakdown.</div>` : ''}
+    ${notCovered.length ? `<div class="missing">Not boosted by either leader: ${notCovered.join(', ')}</div>` : ''}
+    ${missing}
+    ${t.bench?.length ? `<div class="bench"><div class="slotlab" style="margin-top:14px">Also fits ${t.friendSkill ? 'these leaders' : 'this leader'}: swap in for any sub that isn't your pick</div>
+      <div class="grid">${t.bench.map(m => `<div class="fr-cell" title="${esc(m.title)} - ${esc(m.name)}"><span class="info" data-info="${esc(m.id)}" title="Details">i</span>${dkt(m)}
+        ${m.owned ? '<span class="tag own">OWNED</span>' : ''}${m.stacker ? '<span class="tag stack">STACK</span>' : ''}
+        <div class="nm">${esc(m.name)}</div><div class="sub">${esc(m.title)}</div><div class="boost">L +${m.boost}% · F +${m.fboost}% · ${m.links} links w/ picks</div></div>`).join('')}</div></div>` : ''}
+    ${t.stackers ? `<div class="stacklist"><b>Stackers (${t.stackers}/6):</b>${t.members.filter(m => m.stacker).map(m =>
+      `<div><b>${esc(m.name)}</b>: ${m.stack.map(esc).join(' · ')}</div>`).join('')}</div>` : ''}</div>`;
+}
+
+$('#build').onclick = () => runBuild();
+// Loading: the team map's outline as shimmering placeholders, link lines drawing in, real progress underneath.
+function skeleton() {
+  const cell = (pos, cls = '') => { const [c, r] = POS_GRID[pos]; return `<div class="sk ${cls}" data-sk="${pos}" style="grid-column:${c};grid-row:${r}"></div>`; };
+  return `<div class="skwrap"><div class="skel"><svg></svg>
+      ${cell('r1a', 'l')}${cell('r1b')}${cell('f1')}${cell('f2')}${cell('r2a')}${cell('r2b')}${cell('f3')}</div>
+    <div class="skline" id="skline">Building your team…</div></div>`;
+}
+// Lines between the placeholders, where the real map's links will be, drawn from the cards' real positions.
+function drawSkel() {
+  const sk = document.querySelector('.skel'); if (!sk) return;
+  const br = sk.getBoundingClientRect();
+  const at = p => { const r = sk.querySelector(`[data-sk="${p}"]`).getBoundingClientRect(); return { x: r.left - br.left, y: r.top - br.top + r.height / 2, w: r.width }; };
+  const edges = [['r1a', 'r1b', 'r'], ['r2a', 'r2b', 'r'], ['r1b', 'f1', 'f1'], ['r1b', 'f2', 'f2'], ['r1b', 'f3', 'f3'], ['r2b', 'f1', 'f1'], ['r2b', 'f2', 'f2'], ['r2b', 'f3', 'f3']];
+  const svg = sk.querySelector('svg');
+  svg.setAttribute('viewBox', `0 0 ${br.width} ${br.height}`);
+  svg.innerHTML = edges.map(([a, b, k], i) => {
+    const p = at(a), q = at(b), x1 = p.x + p.w, x2 = q.x, dx = (x2 - x1) / 2;
+    return `<path pathLength="100" d="M${x1},${p.y} C${x1 + dx},${p.y} ${x2 - dx},${q.y} ${x2},${q.y}" stroke="${EDGE_COL[k]}" style="animation-delay:${i * 0.2}s"/>`;
+  }).join('');
+}
+let buildSeq = 0, buildPid = null;
+async function runBuild() {
+  renderRepl();
+  if (!picks.length) return;
+  // a newer build replaces the old one: tell the server to stop it, so it doesn't hold up the fetch queue
+  if (buildPid) fetch('/api/cancel?pid=' + buildPid).catch(() => {});
+  const seq = ++buildSeq, pid = 'b' + Date.now().toString(36) + seq;
+  buildPid = pid;
+  // Quick (cached) builds finish before the animation would show, so it doesn't flash.
+  const showTimer = setTimeout(() => { if (seq === buildSeq) { $('#out').innerHTML = skeleton(); drawSkel(); new ResizeObserver(debounce(drawSkel, 50)).observe(document.querySelector('.skel')); $('#out').scrollIntoView({ behavior: 'smooth', block: 'start' }); } }, 250);
+  const poll = setInterval(async () => {
+    try {
+      const p = await api('/api/progress?pid=' + pid);
+      const line = document.getElementById('skline');
+      if (p && line && seq === buildSeq) line.innerHTML = `${esc(p.label)}${p.total ? ` · <b>${Math.min(p.n + 1, p.total)} of ${p.total}</b>` : ''} <span class="note">· step ${p.step} of ${p.of}</span>`;
+    } catch {}
+  }, 300);
+  try {
+    const ev = $('#event').value;
+    const r = await api('/api/build?pid=' + pid + '&ids=' + picks.map(p => p.id).join(',') + (ev ? '&festival=1&event=' + ev : '')
+      + (excluded.length ? '&exclude=' + excluded.map(x => x.id).join(',') : '') + (keepLeader ? '&leader=' + keepLeader.id : '') + (keepLeader && keepFriend ? '&friend=' + keepFriend.id : '') + (prevPicks ? '&mine=' + prevPicks.map(p => p.id).join(',') : ''));
+    clearTimeout(showTimer); clearInterval(poll);
+    if (seq !== buildSeq) return;   // a newer build started meanwhile
+    buildPid = null;
+    const warn = (r.warnings || []).length ? `<p class="missing">⚠ ${r.warnings.map(esc).join('<br>⚠ ')}</p>` : '';
+    if (!r.teams.length) return ($('#out').innerHTML = warn + '<p class="note">No leader found that covers these picks.</p>');
+    const [best, ...others] = r.teams;
+    lastProven = r.proven || null;
+    $('#out').innerHTML = `${provenSection(r)}<h3 id="yourteam">Your team${r.eventName ? ` · ${esc(r.eventName.replace(/^.*?! /, ''))} (open slots: stackers only)` : ''}</h3>${warn}${board(best)}
+      ${others.length ? `<div class="row2"><span class="note">${r.boxSize ? '' : 'Your box is empty: add units in “My box” so the tool can fill teams you own.'}</span>
+        <button class="btn ghost" id="more">Show other leaders (${others.length})</button></div>
+        <div id="others" hidden><h3>Other leaders</h3>${others.map(board).join('')}</div>` : ''}
+      ${r.errors.length ? `<p class="note">Couldn’t load: ${r.errors.map(esc).join('; ')}</p>` : ''}`;
+    const more = $('#more');
+    if (more) more.onclick = () => { const o = $('#others'); o.hidden = !o.hidden; more.textContent = o.hidden ? `Show other leaders (${others.length})` : 'Hide other leaders'; drawMaps(); };
+    requestAnimationFrame(drawMaps);
+    if (scrollToTeam) { scrollToTeam = false; requestAnimationFrame(() => document.getElementById('yourteam')?.scrollIntoView({ behavior: 'smooth', block: 'start' })); }
+  } catch (e) {
+    clearTimeout(showTimer); clearInterval(poll);
+    if (seq === buildSeq) { buildPid = null; $('#out').innerHTML = `<p class="note">Error: ${esc(e.message)}</p>`; }
+  }
+}
+
+// Real cleared teams closest to your picks (event mode), from the bundled clear-board snapshot.
+let lastProven = null, scrollToTeam = false;
+document.addEventListener('click', e => {
+  if (!(e.target instanceof Element)) return;
+  const b = e.target.closest('[data-use]'); if (!b || !lastProven) return;
+  const t = lastProven.teams[Number(b.dataset.use)]; if (!t) return;
+  const six = [t.leader, ...t.subs].filter((u, i, a) => !u.unknown && a.findIndex(x => x.id === u.id) === i).slice(0, MAX);
+  if (!prevPicks) prevPicks = picks.map(slimUnit);   // your own picks, kept once for "Back to your picks"
+  picks = six.map(slimUnit);
+  keepLeader = { id: String(t.leader.id), name: t.leader.name };
+  keepFriend = t.friend.unknown ? null : { id: String(t.friend.id), name: t.friend.name };
+  scrollToTeam = true;
+  savePicks(); saveRepl(); renderRepl(); renderResults(); renderTray(); runBuild();
+});
+function provenSection(r) {
+  if (!r.event) return '';
+  if (!r.proven) return `<p class="note">No clear data bundled for ${esc((r.eventName || '').replace(/^.*?! /, ''))} yet: the team below is built from leader skills, links and stacking only.</p>`;
+  const P = r.proven, picksTotal = prevPicks ? prevPicks.length : (r.picks || []).length;
+  const status = u => (u.pick ? 'pick' : u.owned ? 'own' : 'miss');
+  const tag = u => ({ pick: '<span class="tag pick">YOUR PICK</span>', own: '<span class="tag own">OWNED</span>', miss: '<span class="tag miss">MISSING</span>' })[status(u)];
+  // tap a card for its details (no ⓘ over the type badge); L / F sit on the card's free top-left corner
+  const card = (u, badge) => {
+    const art = u.unknown ? '<span class="dkt"></span>' : dkt(u);
+    const withBadge = badge ? art.replace(/<\/span>$/, `<span class="cl-badge ${badge}">${badge}</span></span>`) : art;
+    return `<div class="cl-card"${u.unknown ? '' : ` data-info="${esc(u.id)}"`} title="${esc(u.title ? u.title + ' - ' : '')}${esc(u.name)}${u.unknown ? '' : ' (tap for details)'}">
+      ${withBadge}<div class="cl-name">${esc(u.name)}</div><div class="cl-tags">${tag(u)}</div></div>`;
+  };
+  // one missing unit: its name; several: the count (the red MISSING tags show which)
+  const missChip = t => {
+    const m = [t.leader, ...t.subs].filter(u => !u.owned && !u.pick).map(u => u.name);
+    return !m.length ? '' : `<span class="cl-chip bad" title="${esc(m.join(', '))}">missing <b>${m.length === 1 ? esc(m[0]) : m.length}</b></span>`;
+  };
+  const team = t => `<div class="cl-team"><div class="cl-head">
+      <span class="cl-chip"><b>${t.usesPicks}/${picksTotal}</b> of your picks</span>
+      <span class="cl-chip${t.have === 6 ? ' ok' : ''}">you own <b>${t.have}/6</b></span>
+      ${missChip(t)}
+      <span class="cl-when">${t.count} clear${t.count > 1 ? 's' : ''}, last ${esc(t.last)}</span>
+      <button class="btn ghost cl-use" data-use="${P.teams.indexOf(t)}" title="Load this team into Your team: its 6 units go in your tray, its leader and friend are kept">Use this team</button></div>
+    <div class="cl-row">${card(t.leader, 'L')}<div class="cl-sep"></div>${t.subs.map(u => card(u)).join('')}<div class="cl-sep"></div>${card(t.friend, 'F')}</div></div>`;
+  const rows = P.teams.map(team);
+  return `<h3>✅ Teams that cleared ${esc(P.event.replace(/^.*?! /, ''))}</h3>
+    <p class="note cl-src">${P.total} teams players posted after clearing it (<a href="${esc(P.source)}" target="_blank" rel="noopener">dokkan.game-db.org</a>, JP board, snapshot ${esc(P.snapshot)}). Closest to your picks first. F = friend: borrowed, so it may repeat a sub.
+      <span class="cl-legend"><i style="background:var(--accent)"></i>your pick<i style="background:var(--ok)"></i>owned<i style="background:var(--miss)"></i>missing</span></p>
+    <div class="cl-list">${rows.slice(0, 3).join('')}</div>
+    ${rows.length > 3 ? `<details style="margin:10px 0 18px"><summary class="cl-more">Show ${rows.length - 3} more cleared teams</summary><div class="cl-list" style="margin-top:10px">${rows.slice(3).join('')}</div></details>` : '<div style="height:18px"></div>'}`;
+}
+
+// ----- box -----
+function renderBox() {
+  $('#boxCount').textContent = box.length;
+  renderResults();      // keeps the Build tab's "From my box" row in step
+  renderBoxResults();   // and the ticks in the box search
+  $('#box').innerHTML = box.length ? box.map(u => cell(u, '<span class="x">×</span>')).join('') : '<p class="note">Empty for now.</p>';
+}
+// Box search: a tick = in your box. Ticks are always redrawn from the box itself, never patched by hand.
+function renderBoxResults() {
+  if (!boxResults.length) return;
+  const have = new Set(box.map(b => b.id));
+  $('#bresults').innerHTML = boxResults.map(u => cell(u, have.has(u.id) ? '<span class="check">✓</span>' : '')
+    .replace('class="fr-cell"', `class="fr-cell${have.has(u.id) ? ' sel' : ''}"`)).join('');
+}
+$('#box').onclick = async e => {
+  const c = e.target.closest('.fr-cell'); if (!c) return;
+  box = await api('/api/box/' + c.dataset.id, { method: 'DELETE' }); renderBox();
+};
+let boxResults = [];
+let bqSeq = 0;
+$('#bq').oninput = debounce(async () => {
+  const seq = ++bqSeq;
+  const q = $('#bq').value.trim(); if (q.length < 3) { boxResults = []; return ($('#bresults').innerHTML = ''); }
+  $('#bresults').innerHTML = '<p class="loading">Searching…</p>';
+  let res;
+  try { res = await api('/api/search?q=' + encodeURIComponent(q)); }
+  catch (e) { if (seq === bqSeq) $('#bresults').innerHTML = `<p class="note">Search failed: ${esc(e.message)}</p>`; return; }
+  if (seq !== bqSeq) return;   // an older, slower answer: ignore it
+  boxResults = res;
+  if (!boxResults.length) return ($('#bresults').innerHTML = '<p class="note">No match.</p>');
+  renderBoxResults();
+}, 300);
+// Tap toggles: add to the box, or remove it if it's already there.
+$('#bresults').onclick = async e => {
+  const c = e.target.closest('.fr-cell'); if (!c || c.dataset.busy) return;
+  c.dataset.busy = 1; c.style.opacity = .4;
+  const id = c.dataset.id;
+  try {
+    box = box.some(b => b.id === id)
+      ? await api('/api/box/' + id, { method: 'DELETE' })
+      : await api('/api/box', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) });
+  } catch (err) { c.title = 'Could not update the box: ' + err.message; }
+  finally { delete c.dataset.busy; c.style.opacity = ''; }
+  renderBox();
+};
+
+// Event picker (remembered per browser). The old "Festival" checkbox setting carries over.
+try {
+  const saved = localStorage.getItem('dk-event');
+  $('#event').value = saved != null ? saved : (localStorage.getItem('dk-festival') === '1' ? 'festival' : '');
+} catch {}
+$('#event').onchange = () => {
+  try { localStorage.setItem('dk-event', $('#event').value); } catch {}
+  syncState();
+  releaseLeader();
+  // A team on screen should match the picker: rebuild it straight away instead of waiting for "Build team".
+  if (picks.length && document.querySelector('#out .rmap')) runBuild();
+};
+renderTray();
+renderRepl();
+api('/api/box').then(b => { box = b; renderBox(); });
+</script>
+</body>
+</html>

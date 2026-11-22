@@ -1,0 +1,15 @@
+# Personal data: your box and saved choices stay on your PC
+box.json
+state.json
+
+# Downloaded site pages and card art (re-fetched when needed)
+cache/
+
+# Build output: the desktop app and the zip go up as a GitHub Release, not into git
+dist/
+desktop/bin/
+desktop/obj/
+
+# Local tool settings and logs
+.claude/
+*.log
