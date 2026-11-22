@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mockups: team DEF overview</title>
+<style>
+  :root { --bg:#111317; --card:#1b1e24; --card2:#22262e; --line:#2c3038; --text:#e8e8ea; --dim:#9aa0aa; --accent:#f0a030; --ok:#4cc38a; --miss:#e5645a;
+          --lead:#e3b23c; --friend:#8e6be8; --okb:#5fd38a; --badb:#ff8a6b; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font:15px/1.45 system-ui, sans-serif; }
+  main { max-width:1240px; margin:0 auto; padding:16px; }
+  h1 { font-size:22px; margin:4px 0 6px; } h1 span { color:var(--accent); }
+  .note { color:var(--dim); font-size:13px; }
+  .opt { border:1px dashed #444; border-radius:14px; padding:14px; margin:22px 0 40px; }
+  .opt > h2 { margin:0 0 4px; font-size:18px; color:var(--accent); }
+  .opt > p.why { margin:0 0 14px; color:var(--dim); font-size:13px; }
+  .screens { display:flex; gap:18px; flex-wrap:wrap; align-items:flex-start; }
+  .screen { position:relative; border:1px solid #3a3f49; border-radius:14px; background:var(--bg); padding:26px 12px 12px; }
+  .screen .cap { position:absolute; top:6px; left:12px; font-size:10px; color:var(--dim); letter-spacing:.08em; text-transform:uppercase; }
+  .phone { width:412px; max-width:100%; } .pc { width:780px; max-width:100%; }
+  .rec { display:inline-block; font-size:11px; font-weight:800; background:var(--ok); color:#111; border-radius:6px; padding:1px 7px; margin-left:6px; vertical-align:middle; }
+  /* the map above, faded: where the overview sits */
+  .mapstub { height:70px; border-radius:12px; background:var(--card); opacity:.35; display:grid; place-items:center; color:var(--dim); font-size:12px; margin-bottom:10px; }
+  /* the overview box */
+  .ov { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:10px 12px; }
+  .ov h4 { margin:0 0 2px; font-size:14px; } .ov .sub { margin:0 0 8px; font-size:12px; color:var(--dim); }
+  .chip { font-size:10.5px; font-weight:700; padding:0 6px; border-radius:5px; white-space:nowrap; }
+  .chip.l { background:var(--lead); color:#111; } .chip.f { background:var(--friend); color:#fff; }
+  b.ok { color:var(--okb); } b.bad { color:var(--badb); }
+  .seg { display:flex; flex-wrap:wrap; width:max-content; max-width:100%; border:1px solid var(--line); border-radius:9px; overflow:hidden; margin:0 0 8px; }
+  .seg button { border:0; background:transparent; color:var(--dim); font:inherit; font-size:12px; padding:5px 10px; cursor:pointer; }
+  .seg button.on { background:var(--accent); color:#111; font-weight:700; }
+  /* A: table */
+  .ov table { width:100%; border-collapse:collapse; font-size:12.5px; }
+  .ov th, .ov td { padding:4px 6px; text-align:left; border-bottom:1px solid #ffffff12; vertical-align:top; }
+  .ov th { color:var(--dim); font-weight:600; font-size:11.5px; }
+  .ov td .s { display:block; color:var(--dim); font-size:11px; }
+  /* B: bars */
+  .bars { display:flex; flex-direction:column; gap:9px; }
+  .br .top { display:flex; justify-content:space-between; gap:8px; font-size:12.5px; }
+  .br .top .n { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .br .top .need { white-space:nowrap; color:var(--dim); } .br .top .need b { color:var(--text); }
+  .track { position:relative; height:9px; border-radius:5px; background:#ffffff10; margin:3px 0 2px; overflow:hidden; }
+  .track i { position:absolute; left:0; top:0; bottom:0; border-radius:5px; }
+  .track i.st { background:repeating-linear-gradient(135deg, #f0a03066 0 5px, #f0a03033 5px 10px); }
+  .track i.now { background:var(--badb); } .track i.now.ok { background:var(--okb); } .track i.st.ok { background:repeating-linear-gradient(135deg, #5fd38a99 0 5px, #5fd38a55 5px 10px); }
+  .br .bot { font-size:11.5px; color:var(--dim); }
+  .legend { display:flex; gap:12px; flex-wrap:wrap; font-size:11px; color:var(--dim); margin-top:8px; }
+  .legend i { display:inline-block; width:18px; height:8px; border-radius:4px; vertical-align:middle; margin-right:4px; }
+  /* C: on the map */
+  .grid { display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:8px; }
+  .grid > div { min-width:0; }
+  .cell { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:6px; text-align:center; font-size:11.5px; min-width:0; }
+  .cell .pic { width:44px; height:44px; border-radius:8px; background:#2a2f39; margin:0 auto 4px; }
+  .cell .nm { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .dchip { display:inline-block; margin-top:4px; font-size:11px; font-weight:700; padding:1px 7px; border-radius:6px; max-width:100%; }
+  .dchip.ok { background:#1f5e3d; color:#bff5d5; } .dchip.bad { background:#5c2a24; color:#ffc9bd; } .dchip.st { background:#5a4720; color:#ffe2a8; }
+  .slotlbl { font-size:10px; color:var(--dim); letter-spacing:.06em; text-transform:uppercase; }
+</style>
+</head>
+<body><main>
+<h1>Mockups: <span>team DEF overview</span></h1>
+<p class="note">Real numbers: your current Festival team. Each unit's DEF needed to take 0 damage from Super Vegito's normal attacks (phase 50),
+  counting its guard (hits ×0.80) and damage reduction in the slot it sits in, against the DEF it has there.</p>
+
+<section class="opt">
+  <h2>A · A table under the map</h2>
+  <p class="why">Exact numbers, one row per unit. The same “Never stacks / Stacks every time it's out” switch as in the unit sheet.</p>
+  <div class="screens">
+    <div class="screen phone" data-opt="A"><span class="cap">Fold cover · 412 px</span></div>
+    <div class="screen pc" data-opt="A"><span class="cap">Tablet / PC</span></div>
+  </div>
+</section>
+
+<section class="opt">
+  <h2>B · Bars under the map <span class="rec">RECOMMENDED</span></h2>
+  <p class="why">Quickest to read: each bar is full at the DEF the unit needs, so you see at once who's there and who's far.
+    Solid = without stacking, striped = if it stacks every time it's out (both in one view, no switch). Exact numbers on every row.</p>
+  <div class="screens">
+    <div class="screen phone" data-opt="B"><span class="cap">Fold cover · 412 px</span></div>
+    <div class="screen pc" data-opt="B"><span class="cap">Tablet / PC</span></div>
+  </div>
+</section>
+
+<section class="opt">
+  <h2>C · A chip on each unit of the map</h2>
+  <p class="why">No new section: each unit card gets “🛡 5.77M” (the DEF it needs), green when it has enough, amber when only if it
+    stacks, red when short. Tap the unit for the details. Most compact, but the map already carries a lot of chips.</p>
+  <div class="screens">
+    <div class="screen phone" data-opt="C"><span class="cap">Fold cover · 412 px</span></div>
+    <div class="screen pc" data-opt="C"><span class="cap">Tablet / PC</span></div>
+  </div>
+</section>
+</main>
+<script>
+// Your current team (live app, Festival, Super Vegito = phase 50). need: DEF for 0 damage from its normal attacks with
+// the unit's guard / damage reduction in that slot; never / stacks: its DEF there without stacking / stacking every time.
+const U = [
+  { slot: 'Rotation 1 · 1st', role: 'first', name: 'Super Saiyan Goku (Angel) + Super Saiyan Vegeta (Angel)', tag: 'l', guard: true, dr: 0, need: 5768000, never: 11524615, stacks: 11524615 },
+  { slot: 'Rotation 1 · 2nd', role: 'second', name: 'Broly (Wrathful)', guard: true, dr: 0, need: 5768000, never: 268806, stacks: 3745358 },
+  { slot: 'Rotation 2 · 1st', role: 'first', name: 'Super Saiyan 4 Goku & Super Saiyan 4 Vegeta', guard: false, dr: 0, need: 7210000, never: 2071427, stacks: 2071427 },
+  { slot: 'Rotation 2 · 2nd', role: 'second', name: 'Super Saiyan 3 Goku', guard: false, dr: 25, need: 5407500, never: 284592, stacks: 498036 },
+  { slot: 'Floater', role: 'floater', name: 'Third Eye Gomah', guard: false, dr: 33, need: 4830700, never: 1166884, stacks: 1166884 },
+  { slot: 'Floater', role: 'floater', name: 'Legendary Super Saiyan Broly', guard: false, dr: 18, need: 5912200, never: 169682, stacks: 780535 },
+  { slot: 'Floater', role: 'floater', name: 'Super Saiyan Goku (Angel) + Super Saiyan Vegeta (Angel)', tag: 'f', guard: false, dr: 0, need: 7210000, never: 768308, stacks: 7683077 },
+];
+const k = x => x >= 1e6 ? (x / 1e6).toFixed(2) + 'M' : Math.round(x / 1e3) + 'k';
+const tag = u => u.tag === 'l' ? '<span class="chip l">L</span> ' : u.tag === 'f' ? '<span class="chip f">F</span> ' : '';
+const counted = u => [u.guard ? 'guard' : '', u.dr ? `−${u.dr}% damage` : ''].filter(Boolean).join(' · ') || 'nothing';
+const res = (need, has) => has >= need ? `<b class="ok">✓</b>` : `<b class="bad">short ${k(need - has)}</b>`;
+const twoCases = u => u.role !== 'first' && Math.round(u.stacks) !== Math.round(u.never);
+const head = `<h4>🛡 DEF check · Super Vegito, normal attacks</h4>
+  <p class="sub">The DEF each unit needs to take 0 damage at phase 50, with its guard and damage reduction in its slot.</p>`;
+const stub = '<div class="mapstub">rotation map</div>';
+const build = {
+  A: (el, stacks = false) => stub + `<div class="ov">${head}
+    <div class="seg"><button class="${stacks ? '' : 'on'}" data-a="0">Never stacks</button><button class="${stacks ? 'on' : ''}" data-a="1">Stacks every time it's out</button></div>
+    <table><tr><th>Unit</th><th>Needs</th><th>Has</th><th></th></tr>${U.map(u => {
+      const has = stacks ? u.stacks : u.never;
+      return `<tr><td>${tag(u)}${u.name.length > 30 ? u.name.slice(0, 28) + '…' : u.name}<span class="s">${u.slot} · counted: ${counted(u)}</span></td>
+        <td><b>${k(u.need)}</b></td><td>${k(has)}</td><td>${res(u.need, has)}</td></tr>`;
+    }).join('')}</table></div>`,
+  B: () => stub + `<div class="ov">${head}<div class="bars">${U.map(u => {
+      const a = Math.min(1, u.never / u.need), b = Math.min(1, u.stacks / u.need), two = twoCases(u);
+      const okNow = u.never >= u.need, okSt = u.stacks >= u.need;
+      const bot = okNow ? `has ${k(u.never)} <b class="ok">✓</b>${u.never >= 2 * u.need ? ` <span>(${(u.never / u.need).toFixed(1)}×)</span>` : ''}`
+        : two ? `has ${k(u.never)} without stacking · ${k(u.stacks)} if it stacks ${okSt ? '<b class="ok">✓</b>' : `<b class="bad">short ${k(u.need - u.stacks)}</b>`}`
+        : `has ${k(u.never)} <b class="bad">short ${k(u.need - u.never)}</b>`;
+      return `<div class="br"><div class="top"><span class="n">${tag(u)}${u.name}</span><span class="need">needs <b>${k(u.need)}</b></span></div>
+        <div class="track">${two ? `<i class="st${okSt ? ' ok' : ''}" style="width:${(b * 100).toFixed(1)}%"></i>` : ''}<i class="now${okNow ? ' ok' : ''}" style="width:${Math.max(1.5, a * 100).toFixed(1)}%"></i></div>
+        <div class="bot">${u.slot} · counted: ${counted(u)} · ${bot}</div></div>`;
+    }).join('')}</div>
+    <div class="legend"><span><i style="background:var(--badb)"></i>its DEF without stacking</span><span><i style="background:repeating-linear-gradient(135deg,#f0a03066 0 5px,#f0a03033 5px 10px)"></i>if it stacks every time it's out</span><span>full bar = enough</span></div></div>`,
+  C: () => {
+    const cell = u => {
+      const cls = u.never >= u.need ? 'ok' : (twoCases(u) && u.stacks >= u.need) ? 'st' : 'bad';
+      return `<div class="cell"><div class="pic"></div><div class="nm">${u.name}</div><span class="dchip ${cls}">🛡 ${k(u.need)} ${cls === 'ok' ? '✓' : cls === 'st' ? '✓ if it stacks' : '✗'}</span></div>`;
+    };
+    return `<div class="grid">
+      <div><div class="slotlbl">Rotation 1</div>${cell(U[0])}</div><div><div class="slotlbl">&nbsp;</div>${cell(U[1])}</div><div><div class="slotlbl">Floater</div>${cell(U[4])}</div>
+      <div><div class="slotlbl">Rotation 2</div>${cell(U[2])}</div><div><div class="slotlbl">&nbsp;</div>${cell(U[3])}</div><div><div class="slotlbl">Floater</div>${cell(U[5])}</div>
+      <div></div><div></div><div><div class="slotlbl">Friend</div>${cell(U[6])}</div></div>
+      <p class="note" style="margin:8px 0 0">🛡 = DEF it needs vs Super Vegito's normal attacks. Green: it has it · amber: only if it stacks · red: short.</p>`;
+  },
+};
+for (const el of document.querySelectorAll('[data-opt]')) {
+  const cap = el.querySelector('.cap').outerHTML;
+  const render = stacks => {
+    el.innerHTML = cap + build[el.dataset.opt](el, stacks);
+    el.querySelectorAll('.seg button').forEach(b => b.onclick = () => render(b.dataset.a === '1'));
+  };
+  render(false);
+}
+</script>
+</body>
+</html>

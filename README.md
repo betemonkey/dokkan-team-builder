@@ -16,7 +16,8 @@ real players cleared with.
   - real cleared teams closest to your picks, with a "Use this team" button;
   - only units that last: the builder adds a leader, friend or sub only if it stacks or players cleared the event
     with it (87% of the units in the posted Festival clears stack). Your own picks stay, with a ⚠ if they don't;
-  - how long each unit takes 0 damage (an estimate only: it decides nothing).
+  - how long each unit takes 0 damage, counting its guard (every hit x0.80) and damage reduction in the slot it
+    sits in, and listing what it leaves out and why (an estimate only: it decides nothing).
 - **Details for any unit:** leader skill, Super Attacks, passive, links, exchange form, when it stacks enough
   to give up the first slot.
 
@@ -58,6 +59,7 @@ The suite builds real teams for a dozen pick sets and checks the rules on every 
 - Festival of Battles clears: a one-time snapshot of the players' clear board on
   [dokkan.game-db.org](https://dokkan.game-db.org/db/battle_festival/) (`data/festival-of-battles-clears.json`).
   The app never contacts that site.
-- Damage and DEF formulas: the [DokkanStats](https://dokkanstats.com/en/guides/) guides.
+- Damage and DEF formulas: the [DokkanStats](https://dokkanstats.com/en/guides/) guides; the damage-taken formula
+  matches a second, independent [calculator](https://dokkan-battle-atk-calculator.netlify.app/).
 
 Dragon Ball Z Dokkan Battle and its art belong to Bandai Namco and their owners. This is an unofficial fan tool.

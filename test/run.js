@@ -135,6 +135,8 @@ function unitTests() {
   eq('slot: 2nd or 3rd attacker, unit 2nd', t.slotCondMet('As the 2nd or 3rd attacker in a turn', 'second'), true);
   eq('slot: 1st attacker, floater', t.slotCondMet('As the 1st attacker in a turn', 'floater'), false);
   eq('slot: not a slot condition', t.slotCondMet('When attacking', 'first'), false);
+  eq('slot: "is the 2nd attacker at the start of turn", unit 2nd', t.slotCondMet('When the character is the 2nd attacker at the start of turn', 'second'), true);
+  eq('slot: "is the 2nd attacker at the start of turn", unit 1st', t.slotCondMet('When the character is the 2nd attacker at the start of turn', 'first'), false);
   const sv = (normal) => ({ phases: 50, stackedLasts: { normal } });
   eq('0-damage reach: never hit', t.zeroReach(sv({ all: true })), 51);
   eq('0-damage reach: hit from the start', t.zeroReach(sv({ never: true })), 0);
@@ -171,6 +173,75 @@ function unitTests() {
   eq('lasts: no stack, no clear', t.fitsEvent(cl, u('1000001', 0)), false);
   eq('lasts: no stack, no clear data (Meteor)', t.fitsEvent(null, u('1032311', 0)), false);
   eq('clears counted over both forms', t.clearCount(cl, { id: '1000001', xform: { id: '1032311' } }), 3);
+  // Guard and damage reduction in the 0-damage bar. Formula from the DokkanStats guide, and the same in a second,
+  // independent damage-taken calculator: hit = enemy ATK x type (1.00 neutral; 0.80 for EVERY hit when the unit
+  // guards) x (1 - damage reduction) x variance 1.03. 0 damage when DEF >= hit.
+  const evN = n => ({ phases: n, enemies: Array.from({ length: n }, (_, i) => ({ name: 'E' + (i + 1), phase: i + 1, atk: 1000000, superDamage: 3000000 })) });
+  const pu = (secs, extra = {}) => ({ id: '1000001', name: 'Test', cls: 'Super', type: 'AGL', categories: ['Fusion'], stacking: {}, ...extra,
+    passive: secs.map(([cond, ...fx]) => ({ cond, fx: fx.map(text => ({ text })) })) });
+  const bars = (secs, { role = 'first', pos = 'r1a', attacks = true, n = 2, conds = [], key = 'atk', extra } = {}) =>
+    t.hitBars(t.defenseKit(pu(secs, extra), conds, role), evN(n), pos, attacks, false)[key].map(Math.round);
+  eq('bar: no guard, no reduction', bars([['Basic effect(s)', 'ATK & DEF 100% ▲']]), [1030000, 1030000]);
+  eq('bar: guard = every hit x0.80', bars([['Basic effect(s)', 'Guards all attacks']]), [824000, 824000]);
+  eq('bar: 40% damage reduction', bars([['Basic effect(s)', 'Damage reduction rate 40% ▲']]), [618000, 618000]);
+  eq('bar: guard and 40% damage reduction', bars([['Basic effect(s)', 'Guards all attacks', 'Damage reduction rate 40% ▲']]), [494400, 494400]);
+  eq('bar: "crit & damage reduction 30%" wording', bars([['Basic effect(s)', 'Chance of performing a critical hit & damage reduction rate 30% ▲']]), [721000, 721000]);
+  eq('bar: "damage reduction rate & crit 30%" wording', bars([['Basic effect(s)', 'Damage reduction rate & chance of performing a critical hit 30% ▲']]), [721000, 721000]);
+  eq('bar: lowering the enemies\' damage reduction isn\'t its own', bars([['Basic effect(s)', 'Damage reduction rate 30% ▲'], ['When attacking', "All enemies' damage reduction rate 20% ▼"]]), [721000, 721000]);
+  eq('bar: a falling reduction alone adds nothing', bars([['Basic effect(s)', 'Damage reduction rate 10% ▼ for every turn passed (no more than -60%)']]), [1030000, 1030000]);
+  eq('bar: a chance to guard is not a guard', bars([['Basic effect(s)', 'High chance of guarding all attacks']]), [1030000, 1030000]);
+  eq('bar: "disables the enemy\'s guard" is not its own guard', bars([['When attacking', "Disables the enemy's guard"]]), [1030000, 1030000]);
+  eq('bar: guard only as 2nd or 3rd attacker, unit attacks 1st', bars([['As the 2nd or 3rd attacker in a turn', 'Guards all attacks']]), [1030000, 1030000]);
+  eq('bar: guard only as 2nd or 3rd attacker, unit attacks 2nd', bars([['As the 2nd or 3rd attacker in a turn', 'Guards all attacks']], { role: 'second', pos: 'r1b' }), [824000, 824000]);
+  eq('bar: guard "as the 1st attacker" inside the line, unit 2nd', bars([['Basic effect(s)', 'DEF 50% ▲ and guards all attacks as the 1st attacker in a turn']], { role: 'second', pos: 'r1b' }), [1030000, 1030000]);
+  eq('bar: guard for the first 3 turns only', bars([["For 3 turns from the character's entry turn", 'Guards all attacks']], { n: 5 }), [1030000, 1030000, 1030000, 1030000, 1030000]);
+  eq('bar: guard for 4 turns on entry', bars([["Activates the Entrance Animation upon the character's entry", 'Ki +3 and guards all attacks for 4 turns']]), [1030000, 1030000]);
+  eq('bar: guard from the entrance animation, no end', bars([["Activates the Entrance Animation upon the character's entry", 'Guards all attacks']]), [824000, 824000]);
+  eq('bar: guard from the 3rd turn on', bars([["Starting from the 3rd turn from the character's entry turn", 'Guards all attacks']], { n: 4 }), [1030000, 1030000, 824000, 824000]);
+  eq('bar: guard from the 3rd turn, 2nd rotation (comes out on turn 2)', bars([["Starting from the 3rd turn from the character's entry turn", 'Guards all attacks']], { n: 5, pos: 'r2a' }), [1030000, 1030000, 1030000, 824000, 824000]);
+  eq('bar: damage reduction from turn 2 of the battle', bars([['Starting from the 2nd turn from the start of battle', 'Damage reduction rate 50% ▲']]), [1030000, 515000]);
+  eq('bar: reduction when receiving a Super Attack: normal attacks unchanged', bars([['When receiving a Super Attack', 'Damage reduction rate 50% ▲ temporarily']]), [1030000, 1030000]);
+  eq('bar: reduction when receiving a Super Attack: Super Attacks halved', bars([['When receiving a Super Attack', 'Damage reduction rate 50% ▲ temporarily']], { key: 'superDamage' }), [1545000, 1545000]);
+  eq('bar: reduction "temporarily when receiving a normal attack"', [bars([['Basic effect(s)', 'Damage reduction rate 60% ▲ temporarily when receiving a normal attack']])[0], bars([['Basic effect(s)', 'Damage reduction rate 60% ▲ temporarily when receiving a normal attack']], { key: 'superDamage' })[0]], [412000, 3090000]);
+  // stacks: per Super Attack (1st attacker in rotation 1: out on turns 1, 3, 5, 7 -> 0, 1, 1, 2, 2, 3, 3, 4 Supers before)
+  eq('bar: reduction +10% per Super Attack (up to 30%)', bars([['For every Super Attack performed', 'Damage reduction rate 10% ▲ (up to 30%)']], { n: 8 }), [1030000, 927000, 927000, 824000, 824000, 721000, 721000, 721000]);
+  eq('bar: ... no Super Attack, no stack', bars([['For every Super Attack performed', 'Damage reduction rate 10% ▲ (up to 30%)']], { n: 3, attacks: false }), [1030000, 1030000, 1030000]);
+  eq('bar: reduction that only lasts within the turn is not counted', bars([['For every attack received', 'Damage reduction rate 10% ▲ within the turn (up to 50%)']], { n: 3 }), [1030000, 1030000, 1030000]);
+  eq('bar: 90% reduction falling 10% a turn, down to 30%', bars([["Activates the Entrance Animation upon the character's entry", 'Damage reduction rate 90% ▲', 'Damage reduction rate 10% ▼ for every turn passed (no more than -60%)']], { n: 9 }),
+    [103000, 206000, 309000, 412000, 515000, 618000, 721000, 721000, 721000]);
+  // (counted as of its next turn out: 1, 2, 2, 3, 3, 4 starts of turn)
+  eq('bar: 30% reduction falling 10% per turn passed (section wording), down to 0', bars([['Basic effect(s)', 'Damage reduction rate 30% ▲'], ['For every turn passed', 'Damage reduction rate 10% ▼ (no more than -30%)']], { n: 5 }),
+    [721000, 824000, 927000, 1030000, 1030000]);
+  eq('bar: a fall "after receiving 7 or more attacks" counts from the start', bars([['Basic effect(s)', 'Damage reduction rate 50% ▲'], ['After receiving 7 or more attacks in battle', 'Damage reduction rate 20% ▼']]), [721000, 721000]);
+  eq('bar: a falling reduction of unknown pace counts at its worst', bars([['Basic effect(s)', 'Damage reduction rate 30% ▲'], ['For every attack received', 'Damage reduction rate 10% ▼ (no more than -20%)']]), [927000, 927000]);
+  eq('bar: reduction +10% at the start of each turn (up to 30%)', bars([['At the start of each turn', 'Damage reduction rate 10% ▲ (up to 30%)']], { n: 6 }), [927000, 824000, 824000, 721000, 721000, 721000]);
+  eq('bar: reduction per Category ally (2 allies, up to 30%)', bars([['Per "Fusion" Category ally on the team', 'Damage reduction rate 10% ▲ (up to 30%)']],
+    { conds: [{ cond: 'Per "Fusion" Category ally on the team', met: true, have: 2, per: true, need: 'per Fusion ally' }] }), [824000, 824000]);
+  eq('bar: reduction before attacking is not counted (hits after its attack get none)', bars([['Basic effect(s)', 'Damage reduction rate 40% ▲ before attacking']]), [1030000, 1030000]);
+  eq('bar: reduction that needs Ki Spheres is not counted', bars([['3 or more Ki Spheres obtained', 'Damage reduction rate 40% ▲']]), [1030000, 1030000]);
+  eq('bar: reduction that needs HP is not counted', bars([['When HP is 50% or more', 'Damage reduction rate 40% ▲']]), [1030000, 1030000]);
+  eq('bar: team condition met', bars([['When there is another "Fusion" Category ally attacking in the same turn', 'Damage reduction rate 40% ▲']],
+    { conds: [{ cond: 'When there is another "Fusion" Category ally attacking in the same turn', met: true, need: 'Fusion ally', scope: 'turn' }] }), [618000, 618000]);
+  eq('bar: team condition not met', bars([['When there is another "Fusion" Category ally attacking in the same turn', 'Damage reduction rate 40% ▲']],
+    { conds: [{ cond: 'When there is another "Fusion" Category ally attacking in the same turn', met: false, need: 'Fusion ally', scope: 'turn' }] }), [1030000, 1030000]);
+  // what the kit says it counted and left out (the page shows both)
+  const kitOf = (secs, role = 'first', extra) => t.defenseKit(pu(secs, extra), [], role);
+  const nc = kitOf([['As the 2nd or 3rd attacker in a turn', 'Guards all attacks'], ['Basic effect(s)', 'High chance of guarding all attacks']]).notCounted;
+  eq('not counted: slot guard says why', nc.some(x => /guards all attacks/i.test(x.text) && /2nd or 3rd attacker/.test(x.why) && /1st/.test(x.why)), true);
+  eq('not counted: chance to guard says why', nc.some(x => /chance of guarding/i.test(x.text) && /chance/i.test(x.why)), true);
+  eq('not counted: "before receiving 3 attacks in battle"', kitOf([['Before receiving 3 attacks in battle', 'Damage reduction rate 66% ▲']]).notCounted.map(x => x.why), ['only for the first 3 hits of the battle']);
+  eq('kit: guard in this slot', kitOf([['As the 2nd or 3rd attacker in a turn', 'Guards all attacks']], 'floater').guard, true);
+  // a unit's support line counts for itself only when it belongs to who it supports
+  eq('support: own "Fusion" allies\' DEF counts for a Fusion unit', kitOf([['Basic effect(s)', '"Successors" or "Fusion" Category allies\' Ki +1 and DEF 40% ▲']]).start, 40);
+  eq('support: ... not for a unit outside those categories', kitOf([['Basic effect(s)', '"Successors" or "Fusion" Category allies\' Ki +1 and DEF 40% ▲']], 'first', { categories: ['Potara'] }).start, 0);
+  eq('support: own DEF before an allies\' part still counts', kitOf([['Basic effect(s)', 'ATK & DEF 400% ▲ and "DAIMA" Category allies\' Ki +1, DEF 23% ▲']], 'first', { categories: ['Potara'] }).start, 400);
+  eq('support: Extreme Class allies\' DEF, Super unit', kitOf([['Basic effect(s)', 'Extreme Class allies\' DEF 40% ▲']]).start, 0);
+  eq('support: "Extreme Type allies\'" (older wording), Extreme unit', kitOf([['Basic effect(s)', 'Extreme Type allies\' ATK & DEF 50% ▲']], 'first', { cls: 'Extreme' }).start, 50);
+  eq('support: (self excluded)', kitOf([['Basic effect(s)', '"Fusion" Category allies\' (self excluded) DEF 40% ▲']]).start, 0);
+  // DEF that only holds within the turn, or only when it attacks, doesn't keep every hit at 0
+  eq('DEF: stack within the turn is not counted', kitOf([['For every attack received', 'DEF 10% ▲ within the turn (up to 50%)']]).stackCap, 0);
+  eq('DEF: "when attacking with 12 or more Ki" is not counted', kitOf([['Basic effect(s)', 'ATK & DEF 100% ▲ when attacking with 12 or more Ki']]).start, 0);
+  eq('DEF: start of each turn +30% (up to 60%) stacks', kitOf([['At the start of each turn', 'ATK & DEF 30% ▲ (up to 60%)']]).stackCap, 60);
   return fails;
 }
 
@@ -259,6 +330,39 @@ function unitTests() {
     const fails = [];
     if (t.fitsEvent(cl, await src.unit('1032261'))) fails.push('the DAIMA SSJ4 Goku (Mini) counts as lasting');
     if (!t.fitsEvent(cl, await src.unit('1032311'))) fails.push('Gomah doesn\'t count as lasting');
+    return fails;
+  });
+  // Asked 2026-11-22: count the unit's guard and damage reduction. The Angel duo (1030481) guards "as the 2nd or 3rd
+  // attacker in a turn": as the friend (3rd slot) every hit counts x0.80, as the leader (attacks 1st) it doesn't.
+  await extra('guard in the real Festival table: the Angel duo needs 20% less DEF as a floater than as the 1st attacker', async () => {
+    const src = require('../lib/source'), t = team._t;
+    const u = await src.unit('1030481'), lead = { L: u, F: u }, st = { conds: [], def: 0 };
+    const asFirst = await t.survival(lead, u, st, 'festival', 'r1a'), asFloater = await t.survival(lead, u, st, 'festival', 'f3');
+    const fails = [];
+    if (!asFirst || !asFloater) return ['no survival data'];
+    if (asFirst.kit.guard) fails.push('guards as the 1st attacker');
+    if (!asFloater.kit.guard) fails.push('doesn\'t guard as the 3rd attacker');
+    if (!asFirst.kit.notCounted.some(x => /guards all attacks/i.test(x.text) && /2nd or 3rd/.test(x.why))) fails.push('the leader\'s kit doesn\'t say why its guard is left out');
+    for (const [j, e] of asFloater.lastEnemies.entries()) {
+      const r = e.normal / asFirst.lastEnemies[j].normal;
+      if (Math.abs(r - 0.8) > 0.001) fails.push(`${e.enemy}: needed DEF ratio ${r.toFixed(3)}, want 0.800`);
+      if (!e.guard || asFirst.lastEnemies[j].guard) fails.push(`${e.enemy}: guard flag wrong in the table`);
+    }
+    return fails;
+  });
+  // Gomah's 33% sits on a line that also says "chance of evading enemy's attack" (the old parser skipped any line
+  // with "enem" in it); Kid Buu's 50% comes from his entrance animation, with no end.
+  await extra('damage reduction in the real Festival table: Gomah 33%, Kid Buu 50%, LSSJ Broly 18%, and the bar is the hit x (1 - reduction) x 1.03', async () => {
+    const src = require('../lib/source'), t = team._t, ev = t.eventOf('festival');
+    const fails = [];
+    for (const [id, want] of [['1032311', 33], ['1034151', 50], ['1021671', 18]]) {
+      const u = await src.unit(id), k = t.defenseKit(u, [], 'first');
+      if (k.dr !== want) { fails.push(`${u.name}: damage reduction ${k.dr}%, want ${want}%`); continue; }
+      const sv = await t.survival({ L: u, F: u }, u, { conds: [], def: 0 }, 'festival', 'r1a');
+      const last = ev.enemies[ev.enemies.length - 1], e = sv.lastEnemies[sv.lastEnemies.length - 1];
+      const bar = Math.ceil(last.atk * (k.guard ? 0.8 : 1) * (1 - want / 100) * 1.03);
+      if (Math.abs(e.normal - bar) > 1) fails.push(`${u.name}: needs ${e.normal} vs ${last.name}, want ${bar}`);
+    }
     return fails;
   });
   // The ground the event rule stands on: "it stacks" has to describe the units players really clear with.
