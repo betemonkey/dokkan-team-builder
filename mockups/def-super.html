@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mockups: DEF check against the Super Attack</title>
+<style>
+  :root { --bg:#111317; --card:#1b1e24; --line:#2c3038; --text:#e8e8ea; --dim:#9aa0aa; --accent:#f0a030; --ok:#4cc38a;
+          --lead:#e3b23c; --friend:#8e6be8; --okb:#5fd38a; --badb:#ff8a6b; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font:15px/1.45 system-ui, sans-serif; }
+  main { max-width:1320px; margin:0 auto; padding:16px; }
+  h1 { font-size:22px; margin:4px 0 6px; } h1 span { color:var(--accent); }
+  .note { color:var(--dim); font-size:13px; margin:0 0 6px; }
+  .opt { border:1px dashed #444; border-radius:14px; padding:14px; margin:22px 0 40px; }
+  .opt > h2 { margin:0 0 4px; font-size:18px; color:var(--accent); }
+  .opt > p.why { margin:0 0 14px; color:var(--dim); font-size:13px; }
+  .rec { display:inline-block; font-size:11px; font-weight:800; background:var(--ok); color:#111; border-radius:6px; padding:1px 7px; margin-left:6px; vertical-align:middle; }
+  .screens { display:flex; flex-direction:column; gap:18px; }
+  .screen { position:relative; border:1px solid #3a3f49; border-radius:14px; background:var(--bg); padding:26px 12px 12px; max-width:100%; }
+  .screen .cap { position:absolute; top:6px; left:12px; font-size:10px; color:var(--dim); letter-spacing:.08em; text-transform:uppercase; }
+  .full { width:100%; } .half { width:700px; }
+
+  /* the DEF check panel, as in the app */
+  .defchk { background:#15171c; border:1px solid var(--line); border-radius:12px; padding:10px 12px; }
+  .defchk .head { display:flex; justify-content:space-between; align-items:flex-start; gap:10px; flex-wrap:wrap; }
+  .defchk h4 { margin:0 0 2px; font-size:14px; } .defchk .sub { margin:0 0 8px; font-size:12px; color:var(--dim); }
+  .defchk .bars { display:flex; flex-direction:column; gap:9px; }
+  .defchk .top { display:flex; justify-content:space-between; gap:8px; font-size:12.5px; }
+  .defchk .top .n { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .defchk .top .need, .defchk .top .where { white-space:nowrap; color:var(--dim); } .defchk .top .need b { color:var(--text); }
+  .defchk .top .where { font-size:11.5px; overflow:hidden; text-overflow:ellipsis; }
+  .defchk .track { position:relative; height:9px; border-radius:5px; background:#ffffff10; margin:3px 0 2px; overflow:hidden; }
+  .defchk .track i { position:absolute; left:0; top:0; bottom:0; border-radius:5px; }
+  .defchk i.now { background:#ff8a6b; } .defchk i.now.ok { background:#5fd38a; }
+  .defchk i.st { background:repeating-linear-gradient(135deg, #f0a03066 0 5px, #f0a03033 5px 10px); }
+  .defchk i.st.ok { background:repeating-linear-gradient(135deg, #5fd38a99 0 5px, #5fd38a55 5px 10px); }
+  .defchk .bot { font-size:11.5px; color:var(--dim); } .defchk b.ok { color:#5fd38a; } .defchk b.bad { color:#ff8a6b; }
+  .defchk .takes { color:#ffb199; }
+  .defchk .dleg { display:flex; gap:12px; flex-wrap:wrap; font-size:11px; color:var(--dim); margin-top:8px; }
+  .defchk .dleg i { display:inline-block; width:18px; height:8px; border-radius:4px; vertical-align:middle; margin-right:4px; }
+  .defchk .verdict { font-size:12px; margin:0 0 8px; padding:5px 8px; border-radius:7px; background:#5a2a2433; border:1px solid #5a2a24; }
+  .chip { font-size:10.5px; font-weight:700; padding:1px 6px; border-radius:5px; white-space:nowrap; }
+  .chip.l { background:var(--lead); color:#111; } .chip.f { background:var(--friend); color:#fff; }
+  /* A: the switch */
+  .seg { display:flex; width:max-content; max-width:100%; border:1px solid var(--line); border-radius:9px; overflow:hidden; }
+  .seg button { border:0; background:transparent; color:var(--dim); font:inherit; font-size:12px; padding:5px 10px; cursor:pointer; }
+  .seg button.on { background:var(--accent); color:#111; font-weight:700; }
+  /* B: two columns per unit */
+  .cols { display:grid; grid-template-columns:1fr 1fr; gap:4px 18px; }
+  .colhead { display:grid; grid-template-columns:1fr 1fr; gap:18px; font-size:11.5px; color:var(--dim); margin:0 0 6px; }
+  .colhead b { color:var(--text); }
+  .defchk .bot.two { display:flex; justify-content:space-between; align-items:baseline; gap:8px; }
+  .bot.two .need2 { flex:none; white-space:nowrap; color:var(--dim); } .bot.two .need2 b { color:var(--text); }
+  /* C: thin Super bar under each bar */
+  .defchk .track.sa { height:5px; margin-top:4px; }
+  .defchk .bot.sa { font-size:11px; }
+  .sa-lab { color:#c9b6ff; font-weight:700; }
+</style>
+</head>
+<body>
+<main>
+  <h1>DEF check <span>against the Super Attack</span></h1>
+  <p class="note">Numbers from your screenshot (Festival phase 50, Super Vegito). The app already works out the DEF each unit needs
+    against his Super; the panel only shows normal attacks today. His Kamehameha hits 24.5M against 7M for a normal attack, so
+    each unit needs 3.5× the DEF to take 0 damage from it, with the same guard, damage reduction and type match-up.</p>
+  <p class="note"><b style="color:var(--text)">takes</b> = what one Super still deals after DEF (halved when the unit guards or
+    has the type advantage). PC only: each option at full window and at half-screen.</p>
+
+  <section class="opt" id="optA">
+    <h2>A · A switch: Normal attacks / Super Attack</h2>
+    <p class="why">Same bars as today; the switch picks which attack they're measured against. Clean, but you see one at a time.</p>
+    <div class="screens">
+      <div class="screen full"><span class="cap">Full window</span><div data-render="A"></div></div>
+      <div class="screen half"><span class="cap">Half screen · 700 px</span><div data-render="A"></div></div>
+    </div>
+  </section>
+
+  <section class="opt" id="optB">
+    <h2>B · Side by side: normal attacks left, Super right <span class="rec">MY PICK</span></h2>
+    <p class="why">Both at once, at the same height as today: each unit keeps one row, with its normal bar and its Super bar next to each other.</p>
+    <div class="screens">
+      <div class="screen full"><span class="cap">Full window</span><div data-render="B"></div></div>
+      <div class="screen half"><span class="cap">Half screen · 700 px</span><div data-render="B"></div></div>
+    </div>
+  </section>
+
+  <section class="opt" id="optC">
+    <h2>C · A thin Super bar under each bar</h2>
+    <p class="why">Today's bars stay as they are; each unit gets a second, thinner bar and one line for the Super. Both at once, but the panel gets about 60% taller.</p>
+    <div class="screens">
+      <div class="screen full"><span class="cap">Full window</span><div data-render="C"></div></div>
+      <div class="screen half"><span class="cap">Half screen · 700 px</span><div data-render="C"></div></div>
+    </div>
+  </section>
+</main>
+<script>
+// The screenshot's team: DEF needed vs Super Vegito's normal attacks, what each unit has (without stacking / if it
+// stacks every time it's out), and whether a hit that gets through is halved (guard or type advantage).
+const SUPER_X = 24.5 / 7;   // Kamehameha 24.5M vs a 7M normal attack: same guard, damage reduction and match-up
+const ROWS = [
+  { tag: 'l', name: 'Super Saiyan Goku (Angel) + Super Saiyan Vegeta (Angel)', slot: 'Rotation 1 · 1st', counted: 'guard', need: 5.77e6, never: 13.72e6, stacks: 13.72e6, first: true, half: true },
+  { name: 'Super Saiyan Vegeta (Angel) + Super Saiyan Goku', slot: 'Rotation 1 · 2nd', counted: '−50% damage', need: 3.60e6, never: 258e3, stacks: 3.88e6, half: false },
+  { name: 'Super Saiyan 4 Goku & Super Saiyan 4 Vegeta', slot: 'Rotation 2 · 1st', counted: 'nothing', need: 7.21e6, never: 2.25e6, stacks: 2.25e6, first: true, half: false },
+  { name: 'Broly (Wrathful)', slot: 'Rotation 2 · 2nd', counted: 'guard', need: 5.77e6, never: 282e3, stacks: 3.92e6, half: true },
+  { name: 'Third Eye Gomah', slot: 'Floater', counted: 'Super TEQ hits ×1.50 · −33% damage', need: 7.25e6, never: 1.17e6, stacks: 1.17e6, half: false },
+  { name: 'Legendary Super Saiyan Broly', slot: 'Floater', counted: '−18% damage', need: 5.91e6, never: 170e3, stacks: 781e3, half: true },
+  { tag: 'f', name: 'Super Saiyan Goku (Angel) + Super Saiyan Vegeta (Angel)', slot: 'Floater', counted: 'Super TEQ hits ×1.25', need: 9.01e6, never: 915e3, stacks: 9.15e6, half: false },
+];
+const k = x => x >= 1e6 ? (x / 1e6).toFixed(2) + 'M' : Math.round(x / 1e3) + 'k';
+const tagOf = r => r.tag === 'l' ? '<span class="chip l">L</span> ' : r.tag === 'f' ? '<span class="chip f">F</span> ' : '';
+const pct = (a, b) => (Math.max(1.5, Math.min(1, a / b) * 100)).toFixed(1);
+// one measurement of a unit against one kind of attack
+function m(r, which) {
+  const need = which === 'super' ? r.need * SUPER_X : r.need;
+  const two = !r.first && Math.round(r.stacks) !== Math.round(r.never);
+  const okNow = r.never >= need, okSt = r.stacks >= need, best = two ? r.stacks : r.never;
+  const takes = Math.max(0, need - best) * (r.half ? 0.5 : 1);
+  return { which, need, two, okNow, okSt, best, takes };
+}
+const track = (r, x, cls = '') => `<div class="track ${cls}" aria-hidden="true">${x.two ? `<i class="st${x.okSt ? ' ok' : ''}" style="width:${(Math.min(1, r.stacks / x.need) * 100).toFixed(1)}%"></i>` : ''}<i class="now${x.okNow ? ' ok' : ''}" style="width:${pct(r.never, x.need)}%"></i></div>`;
+// the status line, plus "takes" for a Super that gets through. form: 'full' (as today), 'compact' (fewer words),
+// 'bare' (no "has": the normal line next to it already gives the unit's DEF, which is the same against both)
+function status(r, x, form) {
+  const takes = x.which === 'super' && x.takes > 0 ? ` · <span class="takes">takes ~${k(x.takes)}</span>` : '';   // one Super; normal attacks stay as today
+  if (x.okNow) return form === 'bare' ? '<b class="ok">✓ 0 damage</b>' : `has ${k(r.never)} <b class="ok">✓</b>${r.never >= 2 * x.need ? ` (${(r.never / x.need).toFixed(1)}×)` : ''}`;
+  if (form === 'bare') return x.two
+    ? (x.okSt ? '<b class="ok">✓ if it stacks</b>' : `<b class="bad">short ${k(x.need - r.stacks)}</b> if it stacks${takes}`)
+    : `<b class="bad">short ${k(x.need - r.never)}</b>${takes}`;
+  if (x.two) return `has ${k(r.never)}${form === 'compact' ? '' : ' without stacking'} · ${k(r.stacks)} if it stacks ${x.okSt ? '<b class="ok">✓</b>' : `<b class="bad">short ${k(x.need - r.stacks)}</b>`}${takes}`;
+  return `has ${k(r.never)} <b class="bad">short ${k(x.need - r.never)}</b>${takes}`;
+}
+const closest = () => {
+  const s = ROWS.map(r => ({ r, x: m(r, 'super') })).sort((a, b) => b.x.best / b.x.need - a.x.best / a.x.need)[0];
+  const okAll = ROWS.filter(r => m(r, 'super').okSt).length;
+  return okAll ? `${okAll} of ${ROWS.length} units take 0 damage from the Super.`
+    : `No unit takes 0 damage from the Super. Closest: ${s.r.tag === 'l' ? 'your leader' : s.r.tag === 'f' ? 'your friend' : s.r.name}, at ${Math.round(100 * s.x.best / s.x.need)}% of the DEF it needs (takes ~${k(s.x.takes)}).`;
+};
+const legend = extra => `<div class="dleg"><span><i class="now" style="background:#ff8a6b"></i>its DEF without stacking</span><span><i class="st" style="background:repeating-linear-gradient(135deg,#f0a03066 0 5px,#f0a03033 5px 10px)"></i>if it stacks every time it's out</span><span>full bar = 0 damage</span>${extra || ''}</div>`;
+
+// A: a switch over today's panel
+function renderA(el, which = 'super') {
+  const rows = ROWS.map(r => { const x = m(r, which);
+    return `<div class="br"><div class="top"><span class="n">${tagOf(r)}${r.name}</span><span class="need">needs <b>${k(x.need)}</b></span></div>
+      ${track(r, x)}<div class="bot">${r.slot} · counted: ${r.counted} · ${status(r, x, 'full')}</div></div>`; }).join('');
+  el.innerHTML = `<div class="defchk"><div class="head"><div><h4>🛡 DEF check · Super Vegito</h4>
+      <p class="sub">The DEF each unit needs to take 0 damage at phase 50, with its guard, damage reduction and type match-up in its slot.</p></div>
+      <div class="seg"><button data-w="normal" class="${which === 'normal' ? 'on' : ''}">Normal attacks · 7M</button><button data-w="super" class="${which === 'super' ? 'on' : ''}">Super Attack · 24.5M</button></div></div>
+    ${which === 'super' ? `<p class="verdict">${closest()}</p>` : ''}
+    <div class="bars">${rows}</div>${legend()}</div>`;
+  el.querySelectorAll('[data-w]').forEach(b => b.onclick = () => renderA(el, b.dataset.w));
+}
+// B: both kinds of attack next to each other, one row per unit
+function renderB(el) {
+  const rows = ROWS.map(r => { const n = m(r, 'normal'), s = m(r, 'super');
+    return `<div class="br"><div class="top"><span class="n">${tagOf(r)}${r.name}</span><span class="where">${r.slot} · counted: ${r.counted}</span></div>
+      <div class="cols"><div class="col">${track(r, n)}<div class="bot two"><span>${status(r, n, 'compact')}</span><span class="need2">needs <b>${k(n.need)}</b></span></div></div>
+      <div class="col">${track(r, s)}<div class="bot two"><span>${status(r, s, 'bare')}</span><span class="need2">needs <b>${k(s.need)}</b></span></div></div></div></div>`; }).join('');
+  el.innerHTML = `<div class="defchk"><h4>🛡 DEF check · Super Vegito</h4>
+    <p class="sub">The DEF each unit needs to take 0 damage at phase 50, with its guard, damage reduction and type match-up in its slot.</p>
+    <div class="colhead"><span><b>Normal attacks</b> · 7M a hit</span><span><b>Super Attack</b> · Kamehameha, 24.5M</span></div>
+    <p class="verdict">${closest()}</p>
+    <div class="bars">${rows}</div>${legend('<span><span class="takes">takes</span> = what one Super still deals</span>')}</div>`;
+}
+// C: today's bars, plus a thin Super bar and line under each
+function renderC(el) {
+  const rows = ROWS.map(r => { const n = m(r, 'normal'), s = m(r, 'super');
+    return `<div class="br"><div class="top"><span class="n">${tagOf(r)}${r.name}</span><span class="need">needs <b>${k(n.need)}</b></span></div>
+      ${track(r, n)}<div class="bot">${r.slot} · counted: ${r.counted} · ${status(r, n, 'full')}</div>
+      ${track(r, s, 'sa')}<div class="bot sa"><span class="sa-lab">Super</span> needs <b style="color:var(--text)">${k(s.need)}</b> · ${status(r, s, 'bare')}</div></div>`; }).join('');
+  el.innerHTML = `<div class="defchk"><h4>🛡 DEF check · Super Vegito</h4>
+    <p class="sub">The DEF each unit needs to take 0 damage at phase 50, with its guard, damage reduction and type match-up in its slot. Thin bar: his Super Attack (Kamehameha, 24.5M).</p>
+    <p class="verdict">${closest()}</p>
+    <div class="bars">${rows}</div>${legend('<span>thin bar = vs Super Attack</span>')}</div>`;
+}
+document.querySelectorAll('[data-render]').forEach(el => ({ A: renderA, B: renderB, C: renderC })[el.dataset.render](el));
+</script>
+</body>
+</html>

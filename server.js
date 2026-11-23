@@ -43,8 +43,8 @@ const BOX_FILE = path.join(DATA_DIR, 'box.json');
 const progress = new Map();    // build id -> latest step, for the loading animation
 const cancelled = new Set();   // build ids the page no longer waits for (a newer build replaced them)
 const readBox = () => { try { const b = JSON.parse(fs.readFileSync(BOX_FILE, 'utf8')); return Array.isArray(b) ? b : []; } catch { return []; } };
-// The page's saved choices (tray, "I don't have it", kept leader, event), kept on disk: browser storage is tied to
-// the page's address, and the desktop app gets a new port every launch, so it used to forget them on restart.
+// The page's saved choices (tray, "I don't have it", kept leader, event, categories), kept on disk: browser storage is
+// tied to the page's address, and the desktop app gets a new port every launch, so it used to forget them on restart.
 const STATE_FILE = path.join(DATA_DIR, 'state.json');
 const STATE_KEYS = ['dk-picks', 'dk-excluded', 'dk-leader', 'dk-event', 'dk-friend', 'dk-prev', 'dk-cats'];
 const readState = () => { try { const s = JSON.parse(fs.readFileSync(STATE_FILE, 'utf8')); return s && typeof s === 'object' && !Array.isArray(s) ? s : {}; } catch { return {}; } };
@@ -103,25 +103,28 @@ http.createServer(async (req, res) => {
     }
 
     if (url.pathname === '/api/search') {
-      const q = (url.searchParams.get('q') || '').trim().slice(0, 80);
-      if (q.length < 3) return send(res, 200, []);
-      return send(res, 200, (await src.search(q)).filter(t => !t.transformed));
+      // from the first letter, best matches first (lib/source.js find; the unit site's own search needs 3 letters)
+      return send(res, 200, await src.find(url.searchParams.get('q') || ''));
     }
 
     if (url.pathname === '/api/box' && req.method === 'GET') return send(res, 200, readBox());
 
     if (url.pathname === '/api/state' && req.method === 'GET') return send(res, 200, readState());
-    if (url.pathname === '/api/state' && req.method === 'PUT') {
+    // A save carries only the choices one window changed, merged into the file. (Replacing the whole file let a
+    // second app window put its old choices back over newer ones.)
+    if (url.pathname === '/api/state' && req.method === 'PATCH') {
       const s = await body(req, 200000);   // the "I don't have it" list can hold a few hundred units
       if (!s || typeof s !== 'object' || Array.isArray(s)) return send(res, 400, { error: 'state must be an object' });
-      // known keys only, each a string (the page stores JSON text); anything too long is refused, not dropped
-      const clean = {};
+      const cur = readState(), next = {};
+      for (const k of STATE_KEYS) if (typeof cur[k] === 'string') next[k] = cur[k];
+      // known keys only, each a string (the page stores JSON text); a wrong or too long value is refused, not dropped
       for (const k of STATE_KEYS) {
-        if (typeof s[k] !== 'string') continue;
+        if (!Object.hasOwn(s, k)) continue;
+        if (typeof s[k] !== 'string') return send(res, 400, { error: `${k} must be text` });
         if (s[k].length > 100000) return send(res, 413, { error: `${k} too large` });
-        clean[k] = s[k];
+        next[k] = s[k];
       }
-      writeAtomic(STATE_FILE, JSON.stringify(clean));
+      writeAtomic(STATE_FILE, JSON.stringify(next));
       return send(res, 200, { ok: true });
     }
 

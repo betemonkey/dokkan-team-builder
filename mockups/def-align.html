@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mockups: DEF check, aligned counts and a clearer legend</title>
+<style>
+  :root { --bg:#111317; --card:#1b1e24; --line:#2c3038; --text:#e8e8ea; --dim:#9aa0aa; --accent:#f0a030; --ok:#4cc38a;
+          --lead:#e3b23c; --friend:#8e6be8; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font:15px/1.45 system-ui, sans-serif; }
+  main { max-width:1320px; margin:0 auto; padding:16px; }
+  h1 { font-size:22px; margin:4px 0 6px; } h1 span { color:var(--accent); }
+  .note { color:var(--dim); font-size:13px; margin:0 0 6px; } .note b { color:var(--text); }
+  .opt { border:1px dashed #444; border-radius:14px; padding:14px; margin:22px 0 40px; }
+  .opt > h2 { margin:0 0 4px; font-size:18px; color:var(--accent); }
+  .opt > p.why { margin:0 0 14px; color:var(--dim); font-size:13px; } .opt > p.why b { color:var(--text); }
+  .rec { display:inline-block; font-size:11px; font-weight:800; background:var(--ok); color:#111; border-radius:6px; padding:1px 7px; margin-left:6px; vertical-align:middle; }
+  .screens { display:flex; flex-direction:column; gap:18px; }
+  /* each frame is the board around the panel, at the panel's real width in the app */
+  .screen { position:relative; border:1px solid #3a3f49; border-radius:14px; background:var(--card); padding:26px 14px 14px; width:max-content; max-width:100%; }
+  .screen .cap { position:absolute; top:6px; left:14px; font-size:10px; color:var(--dim); letter-spacing:.08em; text-transform:uppercase; }
+  .full .defchk { width:1038px; } .half .defchk { width:638px; }
+
+  /* the panel as it is in the app today */
+  .defchk { background:#15171c; border:1px solid var(--line); border-radius:12px; padding:12px 14px; }
+  .defchk h4 { margin:0 0 10px; font-size:14px; } .defchk h4 .dim { color:var(--dim); font-weight:400; }
+  .chip { font-size:10.5px; font-weight:700; padding:1px 6px; border-radius:5px; white-space:nowrap; }
+  .chip.l { background:var(--lead); color:#111; } .chip.f { background:var(--friend); color:#fff; }
+  .defchk .sb { display:grid; grid-template-columns:minmax(170px, 1.35fr) 1fr 1fr; column-gap:22px; align-items:center; }
+  .defchk .hd { font-size:12px; color:var(--dim); padding-bottom:4px; border-bottom:1px solid var(--line); }
+  .defchk .hd b { color:var(--text); } .defchk .hd .cnt { float:right; font-weight:700; }
+  .defchk .grp { grid-column:1 / -1; font-size:10.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--dim); padding:9px 0 2px; }
+  .defchk .nm { font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding:4px 0; }
+  .defchk .cell { display:grid; grid-template-columns:1fr 122px; gap:10px; align-items:center; padding:4px 0; }
+  .defchk .res { font-size:12.5px; white-space:nowrap; font-weight:600; } .defchk .res .n { font-variant-numeric:tabular-nums; }
+  .defchk .ok { color:#5fd38a; } .defchk .bad { color:#ff8a6b; }
+  .defchk .bar { position:relative; height:8px; border-radius:4px; background:#ffffff10; overflow:hidden; }
+  .defchk .bar i { position:absolute; left:0; top:0; bottom:0; border-radius:4px; }
+  .defchk i.now { background:#ff8a6b; } .defchk i.now.ok { background:#5fd38a; }
+  .defchk i.st { background:repeating-linear-gradient(135deg, #f0a03066 0 5px, #f0a03033 5px 10px); }
+  .defchk i.st.ok { background:repeating-linear-gradient(135deg, #5fd38a99 0 5px, #5fd38a55 5px 10px); }
+  .defchk .leg { display:flex; gap:14px; flex-wrap:wrap; font-size:11px; color:var(--dim); margin-top:10px; }
+  .defchk .leg i { display:inline-block; width:18px; height:8px; border-radius:4px; vertical-align:middle; margin-right:4px; }
+  .defchk [title] { cursor:help; }
+  /* the app's half-screen rule (window up to 860 px) */
+  .half .defchk .sb { grid-template-columns:minmax(150px, 1.5fr) 1fr 1fr; column-gap:14px; }
+  .half .defchk .cell { grid-template-columns:1fr 104px; gap:8px; }
+  /* what's wrong today, marked */
+  .flag { outline:2px dashed #ff5a5a; outline-offset:2px; border-radius:3px; }
+
+  /* both options: the three header lines sit on one line */
+  .v-over .hd, .v-right .hd { align-self:end; }
+  /* both options: legend swatches in neutral grey (shape = solid or striped), colour said once */
+  .defchk .leg i.gsolid { background:#aeb4bd; }
+  .defchk .leg i.gstripe { background:repeating-linear-gradient(135deg, #aeb4bdcc 0 5px, #aeb4bd40 5px 10px); }
+  .defchk .leg .key b { font-weight:700; }
+
+  /* A: the count sits in the "needs" column, its ✓ over the ✓ / ✗ marks */
+  .v-over .hd.col { display:grid; grid-template-columns:1fr 122px; column-gap:10px; align-items:end; }
+  .v-over .hd.col .cnt { float:none; grid-column:2; }
+  .half .v-over .hd.col { grid-template-columns:1fr 104px; column-gap:8px; }
+  .half .v-over .hd.col .lbl { grid-column:1 / -1; }   /* not enough room over the bar: the title goes on its own line */
+
+  /* B: every "needs" and the count end on the column's right edge */
+  .v-right .cell { grid-template-columns:1fr 104px; }
+  .v-right .res { text-align:right; }
+</style>
+</head>
+<body>
+<main>
+  <h1>DEF check: <span>aligned counts</span> and a clearer legend</h1>
+  <p class="note">Your screenshot's team (needs as in the app; the DEF it has read off the bars). Two things to fix: the
+    <b>"1 of 7 ✓" count</b> lines up with nothing (it ends 36 px past the "needs" column), and the <b>legend</b> shows a
+    red and an orange swatch while the bars can also be green. While there, the line under the names sits 9 px higher than
+    the other two header lines. Each frame is the panel at its real width in the app: 1400 px window and 700 px window.</p>
+
+  <section class="opt">
+    <h2>Today, for comparison</h2>
+    <p class="why">Red dashes: the two counts, the short line under the names, and the coloured legend swatches.</p>
+    <div class="screens">
+      <div class="screen full"><span class="cap">Full window · 1400 px</span><div data-v="today"></div></div>
+    </div>
+  </section>
+
+  <section class="opt">
+    <h2>A · Right-aligned, like a score column <span class="rec">MY PICK</span></h2>
+    <p class="why">Every <b>"needs X"</b> and the count end on the same right edge, so the count reads as the total of the column under it
+      and the numbers line up like a table. One header line at every width. The gap between a bar and its number grows a few pixels.</p>
+    <div class="screens">
+      <div class="screen full"><span class="cap">Full window · 1400 px</span><div data-v="right"></div></div>
+      <div class="screen half"><span class="cap">Half screen · 700 px</span><div data-v="right"></div></div>
+    </div>
+  </section>
+
+  <section class="opt">
+    <h2>B · Count over the ✓ / ✗ marks</h2>
+    <p class="why">The count moves into the "needs" column and starts with its ✓ (<b>"✓ 1 of 7"</b>), right above the ✓ / ✗ marks.
+      Numbers stay left-aligned as today. In narrower windows there's no room for the title over the bar, so the header takes two lines.</p>
+    <div class="screens">
+      <div class="screen full"><span class="cap">Full window · 1400 px</span><div data-v="over"></div></div>
+      <div class="screen half"><span class="cap">Half screen · 700 px</span><div data-v="over"></div></div>
+    </div>
+  </section>
+  <p class="note">Both options: the legend swatches turn <b>grey</b> (solid = the DEF it has, striped = if it stacks), with
+    "<b style="color:#5fd38a">green</b> = enough" said once, and the three header lines sit level.</p>
+</main>
+<script>
+const HITS = { normal: 7e6, super: 24.5e6 };
+// your screenshot: needs from the app, the DEF it has read off the bars (rounded)
+const ROWS = [
+  { pos: 'r1a', grp: 'Rotation 1', tag: 'l', name: 'Hit', need: 7.21e6, needS: 25.23e6, never: 1.24e6, stacks: 1.24e6, first: true },
+  { pos: 'r1b', grp: 'Rotation 1', name: 'Third Eye Gomah', need: 7.25e6, needS: 25.36e6, never: 2.54e6, stacks: 2.54e6 },
+  { pos: 'r2a', grp: 'Rotation 2', name: 'Broly (Wrathful)', need: 5.77e6, needS: 20.19e6, never: 3.75e6, stacks: 3.75e6, first: true },
+  { pos: 'r2b', grp: 'Rotation 2', name: 'Super Saiyan Goku (Angel) + Super Saiyan Vegeta (Angel)', need: 9.01e6, needS: 31.54e6, never: 0.72e6, stacks: 11.04e6 },
+  { pos: 'f1', grp: 'Floaters', name: 'Metal Cooler Army', need: 7.46e6, needS: 26.12e6, never: 150e3, stacks: 150e3 },
+  { pos: 'f2', grp: 'Floaters', name: 'Super Saiyan Goku + Super Saiyan Vegeta (Angel)', need: 5.77e6, needS: 20.19e6, never: 140e3, stacks: 140e3 },
+  { pos: 'f3', grp: 'Floaters', tag: 'f', name: 'Hit', need: 7.21e6, needS: 25.23e6, never: 90e3, stacks: 820e3 },
+];
+const SHORT = [[/Super Saiyan God SS/g, 'SSGSS'], [/Super Saiyan God/g, 'SSG'], [/Super Saiyan 4/g, 'SSJ4'], [/Super Saiyan 3/g, 'SSJ3'],
+  [/Super Saiyan 2/g, 'SSJ2'], [/Legendary Super Saiyan/g, 'LSSJ'], [/Super Saiyan/g, 'SSJ']];
+const short = n => SHORT.reduce((s, [re, to]) => s.replace(re, to), n);
+const k = x => x >= 1e6 ? (x / 1e6).toFixed(2) + 'M' : Math.round(x / 1e3) + 'k';
+const kk = x => +(x / 1e6).toFixed(2) + 'M';
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+function cell(r, hit) {
+  const need = hit === 'super' ? r.needS : r.need, two = !r.first && Math.round(r.stacks) !== Math.round(r.never);
+  const best = two ? r.stacks : r.never, okNow = r.never >= need, ok = best >= need;
+  const tip = `needs ${k(need)} DEF for 0 damage · has ${k(r.never)}${two ? `, ${k(r.stacks)} if it stacks every time it's out` : ''}`;
+  const bar = `<div class="bar">${two ? `<i class="st${ok ? ' ok' : ''}" style="width:${(Math.min(1, r.stacks / need) * 100).toFixed(1)}%"></i>` : ''}<i class="now${okNow ? ' ok' : ''}" style="width:${Math.max(1.5, Math.min(1, r.never / need) * 100).toFixed(1)}%"></i></div>`;
+  return { ok, okNow, html: `<div class="cell" title="${esc(tip)}">${bar}<span class="res ${ok ? 'ok' : 'bad'}">${ok ? '✓' : '✗'} needs <span class="n">${k(need)}</span></span></div>` };
+}
+function render(el, v) {
+  const cells = ROWS.map(r => ({ r, normal: cell(r, 'normal'), super: cell(r, 'super') }));
+  const head = (label, hit) => {
+    const xs = cells.map(c => c[hit]), all = xs.filter(x => x.ok).length, st = xs.filter(x => x.ok && !x.okNow).length;
+    const cnt = `<span class="cnt ${all ? 'ok' : 'bad'}${v === 'today' ? ' flag' : ''}"${st ? ` title="${st} of them only if they stack"` : ''}>${v === 'over' ? `✓ ${all} of ${xs.length}` : `${all} of ${xs.length} ✓`}</span>`;
+    const lbl = `<b>${label}</b> · ${kk(HITS[hit])}`;
+    return v === 'over' ? `<div class="hd col"><span class="lbl">${lbl}</span>${cnt}</div>` : `<div class="hd">${lbl} ${cnt}</div>`;
+  };
+  let body = `<div class="hd${v === 'today' ? ' flag' : ''}"></div>${head('Normal attacks', 'normal')}${head('Super Attack', 'super')}`;
+  for (const g of [...new Set(ROWS.map(r => r.grp))]) {
+    body += `<div class="grp">${g}</div>`;
+    for (const c of cells.filter(c => c.r.grp === g)) {
+      const tag = c.r.tag === 'l' ? '<span class="chip l">L</span> ' : c.r.tag === 'f' ? '<span class="chip f">F</span> ' : '';
+      body += `<div class="nm" title="${esc(c.r.name)}">${tag}${esc(short(c.r.name))}</div>${c.normal.html}${c.super.html}`;
+    }
+  }
+  const leg = v === 'today'
+    ? `<span class="flag"><i class="now"></i>the DEF it has</span><span class="flag"><i class="st"></i>if it stacks every time it's out</span>`
+    : `<span><i class="gsolid"></i>the DEF it has</span><span><i class="gstripe"></i>if it stacks every time it's out</span><span class="key"><b class="ok">green</b> = enough</span>`;
+  el.innerHTML = `<div class="defchk v-${v}"><h4>🛡 DEF check · Super Vegito <span class="dim">· phase 50 · the DEF each unit needs to take 0 damage</span></h4>
+    <div class="sb">${body}</div>
+    <div class="leg">${leg}<span>needs = DEF for 0 damage, with its guard, damage reduction and type match-up counted</span></div></div>`;
+}
+document.querySelectorAll('[data-v]').forEach(el => render(el, el.dataset.v));
+</script>
+</body>
+</html>

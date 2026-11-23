@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mockups: a calmer DEF check</title>
+<style>
+  :root { --bg:#111317; --card:#1b1e24; --line:#2c3038; --text:#e8e8ea; --dim:#9aa0aa; --accent:#f0a030; --ok:#4cc38a;
+          --lead:#e3b23c; --friend:#8e6be8; --okb:#5fd38a; --badb:#ff8a6b; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font:15px/1.45 system-ui, sans-serif; }
+  main { max-width:1320px; margin:0 auto; padding:16px; }
+  h1 { font-size:22px; margin:4px 0 6px; } h1 span { color:var(--accent); }
+  .note { color:var(--dim); font-size:13px; margin:0 0 6px; } .note b { color:var(--text); }
+  .opt { border:1px dashed #444; border-radius:14px; padding:14px; margin:22px 0 40px; }
+  .opt > h2 { margin:0 0 4px; font-size:18px; color:var(--accent); }
+  .opt > p.why { margin:0 0 14px; color:var(--dim); font-size:13px; }
+  .rec { display:inline-block; font-size:11px; font-weight:800; background:var(--ok); color:#111; border-radius:6px; padding:1px 7px; margin-left:6px; vertical-align:middle; }
+  .screens { display:flex; flex-direction:column; gap:18px; }
+  .screen { position:relative; border:1px solid #3a3f49; border-radius:14px; background:var(--bg); padding:26px 12px 12px; max-width:100%; }
+  .screen .cap { position:absolute; top:6px; left:12px; font-size:10px; color:var(--dim); letter-spacing:.08em; text-transform:uppercase; }
+  .full { width:100%; } .half { width:700px; }
+
+  .defchk { background:#15171c; border:1px solid var(--line); border-radius:12px; padding:12px 14px; }
+  .defchk h4 { margin:0 0 10px; font-size:14px; } .defchk h4 .dim { color:var(--dim); font-weight:400; }
+  .chip { font-size:10.5px; font-weight:700; padding:1px 6px; border-radius:5px; white-space:nowrap; }
+  .chip.l { background:var(--lead); color:#111; } .chip.f { background:var(--friend); color:#fff; }
+  .ok { color:var(--okb); } .bad { color:var(--badb); } .dim { color:var(--dim); }
+  .bar { position:relative; height:8px; border-radius:4px; background:#ffffff10; overflow:hidden; }
+  .bar i { position:absolute; left:0; top:0; bottom:0; border-radius:4px; }
+  .bar i.now { background:#ff8a6b; } .bar i.now.ok { background:#5fd38a; }
+  .bar i.st { background:repeating-linear-gradient(135deg, #f0a03066 0 5px, #f0a03033 5px 10px); }
+  .bar i.st.ok { background:repeating-linear-gradient(135deg, #5fd38a99 0 5px, #5fd38a55 5px 10px); }
+  .leg { display:flex; gap:14px; flex-wrap:wrap; font-size:11px; color:var(--dim); margin-top:10px; }
+  .leg i { display:inline-block; width:18px; height:8px; border-radius:4px; vertical-align:middle; margin-right:4px; }
+  .leg i.now { background:#ff8a6b; } .leg i.st { background:repeating-linear-gradient(135deg, #f0a03066 0 5px, #f0a03033 5px 10px); }
+  [title] { cursor:help; }
+
+  /* A: scoreboard, one line per unit */
+  .sb { display:grid; grid-template-columns:minmax(170px, 1.35fr) 1fr 1fr; column-gap:22px; align-items:center; }
+  .sb .hd { font-size:12px; color:var(--dim); padding-bottom:4px; border-bottom:1px solid var(--line); }
+  .sb .hd b { color:var(--text); } .sb .hd .cnt { float:right; font-weight:700; }
+  .sb .grp { grid-column:1 / -1; font-size:10.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--dim); padding:9px 0 2px; }
+  .sb .nm { font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding:4px 0; }
+  .sb .cell { display:grid; grid-template-columns:1fr 122px; gap:10px; align-items:center; padding:4px 0; }
+  .res { font-size:12.5px; white-space:nowrap; font-weight:600; }
+  .res .n { font-variant-numeric:tabular-nums; }
+
+  /* B: problems first */
+  .tiles { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px; }
+  .tile { border:1px solid var(--line); border-radius:10px; padding:9px 12px; background:#1b1e24; }
+  .tile .k { font-size:11.5px; color:var(--dim); } .tile .big { font-size:20px; font-weight:800; margin:1px 0; }
+  .tile .s { font-size:12px; color:var(--dim); } .tile .s b { color:var(--text); }
+  .short { display:grid; grid-template-columns:minmax(140px, 1fr) 2fr 122px; gap:12px; align-items:center; font-size:13px; padding:4px 0; }
+  .short .nmw { min-width:0; } .short .nm { display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .short .where { display:block; color:var(--dim); font-size:11px; line-height:1.2; }
+  .sub3 { font-size:12px; color:var(--dim); margin:2px 0 6px; } .sub3 b { color:var(--text); }
+  .safe { font-size:12.5px; margin-top:10px; padding-top:8px; border-top:1px solid var(--line); }
+
+  /* C: today's bars, trimmed */
+  .tr { padding:5px 0; }
+  .tr .top { display:flex; align-items:baseline; gap:8px; font-size:13px; margin-bottom:4px; }
+  .tr .top .nm { min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .tr .top .res { margin-left:auto; }
+  .pill { font-size:11px; font-weight:700; padding:1px 7px; border-radius:20px; white-space:nowrap; border:1px solid; }
+  .pill.bad { border-color:#5a2a24; background:#5a2a2440; } .pill.ok { border-color:#1f6b45; background:#1f6b4540; }
+  .tr .tags { font-size:10.5px; color:var(--dim); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; }
+</style>
+</head>
+<body>
+<main>
+  <h1>A calmer <span>DEF check</span>, showing what each unit needs</h1>
+  <p class="note">Same team and numbers as your screenshot (Super Vegito, phase 50). Each unit now shows <b>the DEF it needs to take 0
+    damage</b>, green ✓ when it has it, red ✗ when it doesn't; the bar is the DEF it has. That need already counts its
+    <b>guard</b>, its <b>damage reduction</b> (normal attacks and Supers separately), the <b>type match-up</b> and the game's
+    3% damage roll: hover a unit to see what was counted for it. Short names (SSJ, SSJ4, LSSJ), rows grouped by rotation,
+    other numbers on hover. PC only: full window and half-screen.</p>
+
+  <section class="opt">
+    <h2>A · Scoreboard: one line per unit <span class="rec">MY PICK</span></h2>
+    <p class="why">Normal attacks and the Super side by side, one line each: what it needs against each, lined up in two columns. The column headers count how many units take 0 damage.</p>
+    <div class="screens">
+      <div class="screen full"><span class="cap">Full window</span><div data-render="A"></div></div>
+      <div class="screen half"><span class="cap">Half screen · 700 px</span><div data-render="A"></div></div>
+    </div>
+  </section>
+
+  <section class="opt">
+    <h2>B · Problems first</h2>
+    <p class="why">Two totals at the top, then only the units that don't reach it against normal attacks, highest need first; the safe ones fit on one line. Against the Super nobody reaches it here, so that tile gives the range they'd need.</p>
+    <div class="screens">
+      <div class="screen full"><span class="cap">Full window</span><div data-render="B"></div></div>
+      <div class="screen half"><span class="cap">Half screen · 700 px</span><div data-render="B"></div></div>
+    </div>
+  </section>
+
+  <section class="opt">
+    <h2>C · Today's bars, trimmed</h2>
+    <p class="why">Closest to today: one bar per unit for normal attacks, what it needs on the name line, and what it needs against the Super in a small pill.</p>
+    <div class="screens">
+      <div class="screen full"><span class="cap">Full window</span><div data-render="C"></div></div>
+      <div class="screen half"><span class="cap">Half screen · 700 px</span><div data-render="C"></div></div>
+    </div>
+  </section>
+</main>
+<script>
+// need: DEF for 0 damage from a normal attack (7M); needS: from his Super (Kamehameha 24.5M). Both from the app's model:
+// hit x type match-up (or x0.80 when it guards) x (1 - its damage reduction) x 1.03.
+const ROWS = [
+  { grp: 'Rotation 1', tag: 'l', name: 'Super Saiyan Goku (Angel) + Super Saiyan Vegeta (Angel)', slot: 'Rotation 1 · 1st', counted: 'guard (every hit ×0.80)', need: 5.77e6, needS: 20.19e6, never: 13.72e6, stacks: 13.72e6, first: true, half: true },
+  { grp: 'Rotation 1', name: 'Super Saiyan Vegeta (Angel) + Super Saiyan Goku', slot: 'Rotation 1 · 2nd', counted: '−50% damage', need: 3.60e6, needS: 12.62e6, never: 258e3, stacks: 3.88e6, half: false },
+  { grp: 'Rotation 2', name: 'Super Saiyan 4 Goku & Super Saiyan 4 Vegeta', slot: 'Rotation 2 · 1st', counted: 'nothing (neutral match-up, no reduction)', need: 7.21e6, needS: 25.23e6, never: 2.25e6, stacks: 2.25e6, first: true, half: false },
+  { grp: 'Rotation 2', name: 'Broly (Wrathful)', slot: 'Rotation 2 · 2nd', counted: 'guard (every hit ×0.80)', need: 5.77e6, needS: 20.19e6, never: 282e3, stacks: 3.92e6, half: true },
+  { grp: 'Floaters', name: 'Third Eye Gomah', slot: 'Floater', counted: 'Super TEQ hits it ×1.50 · −33% damage', need: 7.25e6, needS: 25.36e6, never: 1.17e6, stacks: 1.17e6, half: false },
+  { grp: 'Floaters', name: 'Legendary Super Saiyan Broly', slot: 'Floater', counted: '−18% damage', need: 5.91e6, needS: 20.69e6, never: 170e3, stacks: 781e3, half: true },
+  { grp: 'Floaters', tag: 'f', name: 'Super Saiyan Goku (Angel) + Super Saiyan Vegeta (Angel)', slot: 'Floater (friend)', counted: 'Super TEQ hits it ×1.25', need: 9.01e6, needS: 31.54e6, never: 915e3, stacks: 9.15e6, half: false },
+];
+// the usual player shorthand; the full name stays in the tooltip
+const SHORT = [[/Super Saiyan God SS/g, 'SSGSS'], [/Super Saiyan God/g, 'SSG'], [/Super Saiyan 4/g, 'SSJ4'], [/Super Saiyan 3/g, 'SSJ3'],
+  [/Super Saiyan 2/g, 'SSJ2'], [/Legendary Super Saiyan/g, 'LSSJ'], [/Super Saiyan/g, 'SSJ']];
+const short = n => SHORT.reduce((s, [re, to]) => s.replace(re, to), n);
+const k = x => x >= 1e6 ? (x / 1e6).toFixed(2) + 'M' : Math.round(x / 1e3) + 'k';
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const tagOf = r => r.tag === 'l' ? '<span class="chip l">L</span> ' : r.tag === 'f' ? '<span class="chip f">F</span> ' : '';
+function m(r, which) {
+  const need = which === 'super' ? r.needS : r.need;
+  const two = !r.first && Math.round(r.stacks) !== Math.round(r.never);
+  const best = two ? r.stacks : r.never, okNow = r.never >= need, ok = best >= need;
+  return { which, need, two, okNow, ok, best, takes: Math.max(0, need - best) * (r.half ? 0.5 : 1) };
+}
+const bar = (r, x) => `<div class="bar">${x.two ? `<i class="st${x.ok ? ' ok' : ''}" style="width:${(Math.min(1, r.stacks / x.need) * 100).toFixed(1)}%"></i>` : ''}<i class="now${x.okNow ? ' ok' : ''}" style="width:${Math.max(1.5, Math.min(1, r.never / x.need) * 100).toFixed(1)}%"></i></div>`;
+// the one thing a cell says: the DEF it needs, green ✓ when it has it (striped bar: only once it stacks), red ✗ when not
+const result = x => `<span class="res ${x.ok ? 'ok' : 'bad'}">${x.ok ? '✓' : '✗'} needs <span class="n">${k(x.need)}</span></span>`;
+// everything else, on hover
+const tip = (r, x) => esc(`${x.which === 'super' ? 'Super Attack (24.5M)' : 'Normal attacks (7M)'}: needs ${k(x.need)} DEF for 0 damage · has ${k(r.never)}${x.two ? `, ${k(r.stacks)} if it stacks every time it's out` : ''}`
+  + (x.which === 'super' && x.takes ? ` · one Super would still deal ~${k(x.takes)}` : '') + `\nCounted in that need: ${r.counted}`);
+const nameTip = r => esc(`${r.name}\n${r.slot} · counted: ${r.counted}`);
+const count = which => { const xs = ROWS.map(r => m(r, which)); return { now: xs.filter(x => x.okNow).length, st: xs.filter(x => !x.okNow && x.ok).length }; };
+const groups = () => [...new Set(ROWS.map(r => r.grp))];
+const legend = extra => `<div class="leg"><span><i class="now"></i>the DEF it has</span><span><i class="st"></i>if it stacks every time it's out</span><span>needs = DEF for 0 damage, with its guard, damage reduction and type match-up counted</span>${extra || ''}</div>`;
+
+function renderA(el) {
+  const head = which => { const c = count(which), all = c.now + c.st;
+    return `<span class="cnt ${all ? 'ok' : 'bad'}"${c.st ? ` title="${c.st} of them only if they stack"` : ''}>${all} of ${ROWS.length} ✓</span>`; };
+  let html = `<div class="hd"></div><div class="hd"><b>Normal attacks</b> · 7M ${head('normal')}</div><div class="hd"><b>Super Attack</b> · 24.5M ${head('super')}</div>`;
+  for (const g of groups()) {
+    html += `<div class="grp">${g}</div>`;
+    for (const r of ROWS.filter(r => r.grp === g)) {
+      const n = m(r, 'normal'), s = m(r, 'super');
+      html += `<div class="nm" title="${nameTip(r)}">${tagOf(r)}${esc(short(r.name))}</div>
+        <div class="cell" title="${tip(r, n)}">${bar(r, n)}${result(n)}</div>
+        <div class="cell" title="${tip(r, s)}">${bar(r, s)}${result(s)}</div>`;
+    }
+  }
+  el.innerHTML = `<div class="defchk"><h4>🛡 DEF check · Super Vegito <span class="dim">· phase 50 · the DEF each unit needs to take 0 damage</span></h4>
+    <div class="sb">${html}</div>${legend()}</div>`;
+}
+
+function renderB(el) {
+  const cn = count('normal'), cs = count('super');
+  const sup = ROWS.map(r => m(r, 'super').need), lo = Math.min(...sup), hi = Math.max(...sup);
+  const bad = ROWS.map(r => ({ r, x: m(r, 'normal') })).filter(({ x }) => !x.ok).sort((a, b) => b.x.need - a.x.need);
+  const good = ROWS.map(r => ({ r, x: m(r, 'normal') })).filter(({ x }) => x.ok);
+  el.innerHTML = `<div class="defchk"><h4>🛡 DEF check · Super Vegito <span class="dim">· phase 50</span></h4>
+    <div class="tiles">
+      <div class="tile"><div class="k">Normal attacks · 7M</div><div class="big ${cn.now + cn.st ? 'ok' : 'bad'}">${cn.now + cn.st} of ${ROWS.length} take 0 damage</div>
+        <div class="s">${cn.st ? `${cn.st} of them only if they stack` : 'without stacking'}</div></div>
+      <div class="tile"><div class="k">Super Attack · Kamehameha 24.5M</div><div class="big ${cs.now + cs.st ? 'ok' : 'bad'}">${cs.now + cs.st ? `${cs.now + cs.st} of ${ROWS.length}` : 'None'} take 0 damage</div>
+        <div class="s">They'd need <b>${k(lo)}</b> to <b>${k(hi)}</b> DEF each (hover a unit below for its own)</div></div>
+    </div>
+    <p class="sub3"><b>Not at 0 damage against normal attacks</b>, highest need first</p>
+    ${bad.map(({ r, x }) => `<div class="short"><span class="nmw" title="${nameTip(r)}"><span class="nm">${tagOf(r)}${esc(short(r.name))}</span><span class="where">${r.slot}</span></span>
+      <span title="${tip(r, x)}">${bar(r, x)}</span><span title="${tip(r, m(r, 'super'))}">${result(x)}</span></div>`).join('')}
+    <div class="safe"><span class="ok" style="font-weight:700">✓ Safe:</span> ${good.map(({ r, x }) => `<span title="${tip(r, x)}">${tagOf(r)}${esc(short(r.name))} <span class="dim">(needs ${k(x.need)}${x.okNow ? '' : ', if it stacks'})</span></span>`).join(' · ')}</div>
+    ${legend()}</div>`;
+}
+
+function renderC(el) {
+  let html = '';
+  for (const g of groups()) {
+    html += `<div class="grp" style="font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);padding:8px 0 0">${g}</div>`;
+    for (const r of ROWS.filter(r => r.grp === g)) {
+      const n = m(r, 'normal'), s = m(r, 'super');
+      html += `<div class="tr"><div class="top"><span class="nm" title="${nameTip(r)}">${tagOf(r)}${esc(short(r.name))}</span>
+        <span class="tags">${esc(/^nothing/.test(r.counted) ? '' : r.counted)}</span>
+        <span title="${tip(r, n)}" style="margin-left:auto">${result(n)}</span>
+        <span class="pill ${s.ok ? 'ok' : 'bad'}" title="${tip(r, s)}">Super: needs ${k(s.need)}</span></div>
+        <div title="${tip(r, n)}">${bar(r, n)}</div></div>`;
+    }
+  }
+  el.innerHTML = `<div class="defchk"><h4>🛡 DEF check · Super Vegito <span class="dim">· phase 50 · DEF needed for 0 damage · bar: normal attacks (7M)</span></h4>${html}
+    ${legend('<span>Super pill: red = it doesn\'t have it against his Super (24.5M)</span>')}</div>`;
+}
+document.querySelectorAll('[data-render]').forEach(el => ({ A: renderA, B: renderB, C: renderC })[el.dataset.render](el));
+</script>
+</body>
+</html>

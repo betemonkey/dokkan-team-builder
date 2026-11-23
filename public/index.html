@@ -115,21 +115,37 @@
   .surv .stackseg button.on { background:var(--accent); color:#111; font-weight:700; }
   .surv .stackseg button:focus-visible { outline:2px solid var(--accent); outline-offset:-2px; }
   .surv .defcase[data-case="never"] .c-stacks, .surv .defcase[data-case="stacks"] .c-never { display:none; }
-  /* 🛡 DEF check under the map: each bar is full at the DEF the unit needs vs the last enemy's normal attacks */
-  .defchk { margin-top:12px; background:#15171c; border:1px solid var(--line); border-radius:12px; padding:10px 12px; }
-  .defchk h4 { margin:0 0 2px; font-size:14px; } .defchk .sub { margin:0 0 8px; font-size:12px; color:var(--dim); }
-  .defchk .bars { display:flex; flex-direction:column; gap:9px; }
-  .defchk .top { display:flex; justify-content:space-between; gap:8px; font-size:12.5px; }
-  .defchk .top .n { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  .defchk .top .need { white-space:nowrap; color:var(--dim); } .defchk .top .need b { color:var(--text); }
-  .defchk .track { position:relative; height:9px; border-radius:5px; background:#ffffff10; margin:3px 0 2px; overflow:hidden; }
-  .defchk .track i { position:absolute; left:0; top:0; bottom:0; border-radius:5px; }
+  /* 🛡 DEF check under the map (approved mockups: mockups/def-readable.html option A, then mockups/def-align.html
+     option A): one line per unit, what it needs against normal attacks and against the Super side by side; each bar is
+     full at what the unit needs. The "N of 7 ✓" count and every "needs X" end on the column's right edge. */
+  .defchk { margin-top:12px; background:#15171c; border:1px solid var(--line); border-radius:12px; padding:12px 14px; }
+  .defchk h4 { margin:0 0 10px; font-size:14px; } .defchk h4 .dim { color:var(--dim); font-weight:400; }
+  .defchk .sb { display:grid; grid-template-columns:minmax(170px, 1.35fr) 1fr 1fr; column-gap:22px; align-items:center; }
+  .defchk .hd { font-size:12px; color:var(--dim); padding-bottom:4px; border-bottom:1px solid var(--line); align-self:end; }
+  .defchk .hd b { color:var(--text); } .defchk .hd .cnt { float:right; font-weight:700; }
+  .defchk .grp { grid-column:1 / -1; font-size:10.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--dim); padding:9px 0 2px; }
+  .defchk .nm { font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding:4px 0; }
+  .defchk .cell { display:grid; grid-template-columns:1fr 104px; gap:10px; align-items:center; padding:4px 0; }
+  .defchk .res { font-size:12.5px; white-space:nowrap; font-weight:600; text-align:right; } .defchk .res .n { font-variant-numeric:tabular-nums; }
+  .defchk .ok { color:#5fd38a; } .defchk .bad { color:#ff8a6b; }
+  .defchk .bar { position:relative; height:8px; border-radius:4px; background:#ffffff10; overflow:hidden; }
+  .defchk .bar i { position:absolute; left:0; top:0; bottom:0; border-radius:4px; }
   .defchk i.now { background:#ff8a6b; } .defchk i.now.ok { background:#5fd38a; }
   .defchk i.st { background:repeating-linear-gradient(135deg, #f0a03066 0 5px, #f0a03033 5px 10px); }
   .defchk i.st.ok { background:repeating-linear-gradient(135deg, #5fd38a99 0 5px, #5fd38a55 5px 10px); }
-  .defchk .bot { font-size:11.5px; color:var(--dim); } .defchk b.ok { color:#5fd38a; } .defchk b.bad { color:#ff8a6b; }
-  .defchk .dleg { display:flex; gap:12px; flex-wrap:wrap; font-size:11px; color:var(--dim); margin-top:8px; }
-  .defchk .dleg i { display:inline-block; width:18px; height:8px; border-radius:4px; vertical-align:middle; margin-right:4px; }
+  .defchk .leg { display:flex; gap:14px; flex-wrap:wrap; font-size:11px; color:var(--dim); margin-top:10px; }
+  .defchk .leg i { display:inline-block; width:18px; height:8px; border-radius:4px; vertical-align:middle; margin-right:4px; }
+  /* legend swatches in neutral grey: the shape says it (solid = the DEF it has, striped = if it stacks), green is said once */
+  .defchk .leg i.gsolid { background:#aeb4bd; }
+  .defchk .leg i.gstripe { background:repeating-linear-gradient(135deg, #aeb4bdcc 0 5px, #aeb4bd40 5px 10px); }
+  .defchk .leg .key b { font-weight:700; }
+  .defchk [title] { cursor:help; }
+  /* half-screen window (the panel is ~36 px narrower than the first mockup's 700 px frame): give the long names more of
+     the row, the bars a little less */
+  @media (max-width: 860px) {
+    .defchk .sb { grid-template-columns:minmax(150px, 1.5fr) 1fr 1fr; column-gap:14px; }
+    .defchk .cell { grid-template-columns:1fr 104px; gap:8px; }
+  }
   .chip.c { cursor:help; } .chip.c.all { background:#1f6b45; color:#bff2d6; } .chip.c.some { background:#5c4a17; color:#ffe08a; } .chip.c.none { background:#5a2a24; color:#ff9b8f; }
   .band .cmark { float:right; font-weight:700; font-size:11px; padding:0 6px; border-radius:6px; }
   .band .cmark.met { background:#1f6b45; color:#bff2d6; } .band .cmark.unmet { background:#5a2a24; color:#ff9b8f; }
@@ -366,31 +382,35 @@ let box = [], picks = [], lastResults = [];
 // instead of stopping the page (one bad value used to keep the box from loading).
 const unitOk = u => u && typeof u === 'object' && /^\d{1,9}$/.test(String(u.id)) && typeof u.name === 'string';
 const slimUnit = u => ({ id: String(u.id), title: String(u.title || ''), name: String(u.name), rarity: String(u.rarity || ''), cls: String(u.cls || ''), type: String(u.type || '') });
-// Your choices (tray, "I don't have it", kept leader, event) are kept in a file by the server, so they survive
-// restarts: the desktop app gets a new address each launch and browser storage is tied to the address.
-// The file is read once, before anything below reads the saved values; every change is written back.
+// Your choices (tray, "I don't have it", kept leader, event, categories) are kept in a file by the server, so they
+// survive restarts: the desktop app gets a new address each launch and browser storage is tied to the address.
+// The file is read once, before anything below reads the saved values. After that, each window sends only the
+// choices it changed and the server merges them in: with the app open twice, the older window (closed last, or
+// changing something else) can't put its old choices back over newer ones made in the other window.
 const STATE_KEYS = ['dk-picks', 'dk-excluded', 'dk-leader', 'dk-event', 'dk-friend', 'dk-prev', 'dk-cats'];
+const stateSaved = {};   // per choice: the text this window last read from the file or sent to it
 let stateTimer = null;
-function syncState() {
+function syncState() { clearTimeout(stateTimer); stateTimer = setTimeout(sendState, 300); }
+function sendState() {
   clearTimeout(stateTimer);
-  stateTimer = setTimeout(() => {
-    try {
-      const s = {};
-      for (const k of STATE_KEYS) { const v = localStorage.getItem(k); if (v != null) s[k] = v; }
-      fetch('/api/state', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(s), keepalive: true })
-        .then(r => { if (!r.ok) console.warn('Saving your choices failed:', r.status); }).catch(e => console.warn('Saving your choices failed:', e.message));
-    } catch {}
-  }, 300);
-}
-// a change made just before closing or reloading is saved too
-addEventListener('pagehide', () => { if (stateTimer) { clearTimeout(stateTimer); stateTimer = null; syncNow(); } });
-function syncNow() {
+  stateTimer = null;
+  const s = {};
+  for (const k of STATE_KEYS) {
+    let v = null;
+    try { v = localStorage.getItem(k); } catch {}
+    if (typeof v === 'string' && v !== stateSaved[k]) s[k] = v;
+  }
+  if (!Object.keys(s).length) return;
+  Object.assign(stateSaved, s);
+  // a save that fails is sent again with the next change
+  const failed = why => { console.warn('Saving your choices failed:', why); for (const k in s) if (stateSaved[k] === s[k]) delete stateSaved[k]; };
   try {
-    const s = {};
-    for (const k of STATE_KEYS) { const v = localStorage.getItem(k); if (v != null) s[k] = v; }
-    fetch('/api/state', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(s), keepalive: true }).catch(() => {});
-  } catch {}
+    fetch('/api/state', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(s), keepalive: true })
+      .then(r => { if (!r.ok) failed(r.status); }, e => failed(e.message));
+  } catch (e) { failed(e.message); }
 }
+// a change made just before closing or reloading is saved too; a window that changed nothing sends nothing
+addEventListener('pagehide', () => sendState());
 (function loadServerState() {
   try {
     const x = new XMLHttpRequest();
@@ -399,7 +419,9 @@ function syncNow() {
     if (x.status !== 200) return;
     const s = JSON.parse(x.responseText) || {};
     if (STATE_KEYS.some(k => typeof s[k] === 'string')) {
-      for (const k of STATE_KEYS) { if (typeof s[k] === 'string') localStorage.setItem(k, s[k]); else localStorage.removeItem(k); }
+      for (const k of STATE_KEYS) {
+        if (typeof s[k] === 'string') { localStorage.setItem(k, s[k]); stateSaved[k] = s[k]; } else localStorage.removeItem(k);
+      }
     } else syncState();   // no file yet: keep what this browser had and save it
   } catch {}
 })();
@@ -471,7 +493,7 @@ function renderTray() {
 let qSeq = 0;
 $('#q').oninput = debounce(async () => {
   const seq = ++qSeq;
-  const q = $('#q').value.trim(); if (q.length < 3) { lastResults = []; return ($('#results').innerHTML = ''); }
+  const q = $('#q').value.trim(); if (!q) { lastResults = []; return ($('#results').innerHTML = ''); }
   $('#results').innerHTML = '<p class="loading">Searching…</p>';
   try {
     const res = await api('/api/search?q=' + encodeURIComponent(q));
@@ -605,38 +627,59 @@ function rotationMap(t) {
     <div class="legend">${legend}</div>
     <p class="note" style="margin:6px 0 0">Tap a unit for details, to replace it, or to mark it as one you don’t have.</p>`;
 }
-// 🛡 DEF check (event mode): the DEF each unit needs to take 0 damage from the last enemy's normal attacks, with its
-// guard, damage reduction and type match-up in its slot, against the DEF it has there. Each bar is full at what the unit needs:
-// solid = without stacking, striped = if it stacks every time it's out (a unit that attacks 1st always does).
-const CHECK_SLOT = { r1a: 'Rotation 1 · 1st', r1b: 'Rotation 1 · 2nd', r2a: 'Rotation 2 · 1st', r2b: 'Rotation 2 · 2nd', f1: 'Floater', f2: 'Floater', f3: 'Floater' };
+// 🛡 DEF check (event mode; approved mockup: mockups/def-readable.html, option A). One line per unit, grouped by
+// rotation: the DEF it needs to take 0 damage from the last enemy's normal attacks and from his Super, with its guard,
+// damage reduction and type match-up in its slot counted, ✓ when it has that DEF and ✗ when not: what a unit needs,
+// not how much it's short (asked 2026-11-23). Each bar is full at what the unit needs: solid = the DEF it has without
+// stacking, striped = if it stacks every time it's out (a unit that attacks 1st always does). The rest is in tooltips.
+const CHECK_SLOT = { r1a: 'Rotation 1 · 1st', r1b: 'Rotation 1 · 2nd', r2a: 'Rotation 2 · 1st', r2b: 'Rotation 2 · 2nd', f1: 'Floater', f2: 'Floater', f3: 'Floater (friend)' };
+const CHECK_GROUP = { r1a: 'Rotation 1', r1b: 'Rotation 1', r2a: 'Rotation 2', r2b: 'Rotation 2', f1: 'Floaters', f2: 'Floaters', f3: 'Floaters' };
+// the usual player shorthand, so a line fits; the full name stays in the tooltip
+const SHORT_NAMES = [[/Super Saiyan God SS/g, 'SSGSS'], [/Super Saiyan God/g, 'SSG'], [/Super Saiyan 4/g, 'SSJ4'], [/Super Saiyan 3/g, 'SSJ3'],
+  [/Super Saiyan 2/g, 'SSJ2'], [/Legendary Super Saiyan/g, 'LSSJ'], [/Super Saiyan/g, 'SSJ']];
+const shortName = n => SHORT_NAMES.reduce((s, [re, to]) => s.replace(re, to), String(n));
 function defCheck(t) {
   const byId = Object.fromEntries(t.members.map(m => [m.id, m]));
   const rows = Object.keys(CHECK_SLOT).map(pos => {
     const sv = t.map.stats[pos]?.surv, e = sv?.lastEnemies?.[sv.lastEnemies.length - 1];
     const m = pos === 'f3' ? t.friend : byId[t.map.slots[pos]];
-    return sv && e && m ? { pos, sv, e, m } : null;
+    if (!sv || !e || !m) return null;
+    const never = e.def ?? sv.stacked, stacks = e.defIfAttacks ?? never;
+    return { pos, e, m, never, stacks, two: sv.role !== 'first' && Math.round(stacks) !== Math.round(never) };
   }).filter(Boolean);
   if (!rows.length) return '';
   const k = x => x >= 1e6 ? (x / 1e6).toFixed(2) + 'M' : Math.round(x / 1e3) + 'k';
-  const last = rows[0].e;
-  const bars = rows.map(({ pos, sv, e, m }) => {
-    const need = e.normal, never = e.def ?? sv.stacked, stacks = e.defIfAttacks ?? never;
-    const two = sv.role !== 'first' && Math.round(stacks) !== Math.round(never);
-    const okNow = never >= need, okSt = stacks >= need;
-    const counted = [e.guard ? 'guard' : '', !e.guard && e.mult && e.mult !== 1 && e.vs ? `${esc(e.vs)} hits ×${e.mult.toFixed(2)}` : '',
-      e.dr ? `−${e.dr}% damage` : ''].filter(Boolean).join(' · ') || 'nothing';
-    const tag = pos === 'r1a' ? '<span class="chip l">L</span> ' : pos === 'f3' ? '<span class="chip f">F</span> ' : '';
-    const bot = okNow ? `has ${k(never)} <b class="ok">✓</b>${never >= 2 * need ? ` (${(never / need).toFixed(1)}×)` : ''}`
-      : two ? `has ${k(never)} without stacking · ${k(stacks)} if it stacks ${okSt ? '<b class="ok">✓</b>' : `<b class="bad">short ${k(need - stacks)}</b>`}`
-      : `has ${k(never)} <b class="bad">short ${k(need - never)}</b>`;
-    return `<div class="br"><div class="top"><span class="n">${tag}${esc(m.name)}</span><span class="need">needs <b>${k(need)}</b></span></div>
-      <div class="track" aria-hidden="true">${two ? `<i class="st${okSt ? ' ok' : ''}" style="width:${(Math.min(1, stacks / need) * 100).toFixed(1)}%"></i>` : ''}<i class="now${okNow ? ' ok' : ''}" style="width:${Math.max(1.5, Math.min(1, never / need) * 100).toFixed(1)}%"></i></div>
-      <div class="bot">${CHECK_SLOT[pos]} · counted: ${counted} · ${bot}</div></div>`;
-  }).join('');
-  return `<div class="defchk"><h4>🛡 DEF check · ${esc(last.enemy)}, normal attacks</h4>
-    <p class="sub">The DEF each unit needs to take 0 damage at phase ${last.phase}, with its guard, damage reduction and type match-up in its slot.</p>
-    <div class="bars">${bars}</div>
-    <div class="dleg"><span><i class="now"></i>its DEF without stacking</span><span><i class="st"></i>if it stacks every time it's out</span><span>full bar = enough</span></div></div>`;
+  const kk = x => x >= 1e6 ? +(x / 1e6).toFixed(2) + 'M' : Math.round(x / 1e3) + 'k';   // the enemy's hits: 7M, 24.5M
+  const last = rows[0].e, hits = last.hits || {};
+  // what a need counts: its guard (every hit x0.80), else the type match-up, and its damage reduction for that hit
+  const counted = (e, dr) => [e.guard ? 'guard (every hit ×0.80)' : '', !e.guard && e.mult && e.mult !== 1 && e.vs ? `${e.vs} hits it ×${e.mult.toFixed(2)}` : '',
+    dr ? `−${dr}% damage` : ''].filter(Boolean).join(' · ') || 'nothing (neutral match-up, no reduction)';
+  const cell = (r, hit) => {
+    const need = hit === 'super' ? r.e.super : r.e.normal, best = r.two ? r.stacks : r.never;
+    const okNow = r.never >= need, ok = best >= need, takes = Math.max(0, need - best) * (r.e.halved ? 0.5 : 1);
+    const tip = `${hit === 'super' ? 'Super Attack' : 'Normal attacks'}${hits[hit] ? ` (${kk(hits[hit])})` : ''}: needs ${k(need)} DEF for 0 damage · has ${k(r.never)}${r.two ? `, ${k(r.stacks)} if it stacks every time it's out` : ''}`
+      + (hit === 'super' && takes ? ` · one Super would still deal ~${k(takes)}` : '') + `\nCounted in that need: ${counted(r.e, hit === 'super' ? r.e.drSuper : r.e.dr)}`;
+    const bar = `<div class="bar" aria-hidden="true">${r.two ? `<i class="st${ok ? ' ok' : ''}" style="width:${(Math.min(1, r.stacks / need) * 100).toFixed(1)}%"></i>` : ''}<i class="now${okNow ? ' ok' : ''}" style="width:${Math.max(1.5, Math.min(1, r.never / need) * 100).toFixed(1)}%"></i></div>`;
+    return { ok, okNow, html: `<div class="cell" data-pos="${r.pos}" data-hit="${hit}" title="${esc(tip)}">${bar}<span class="res ${ok ? 'ok' : 'bad'}">${ok ? '✓' : '✗'} needs <span class="n">${k(need)}</span></span></div>` };
+  };
+  const cells = rows.map(r => ({ r, normal: cell(r, 'normal'), super: cell(r, 'super') }));
+  // the column header counts the units that take 0 damage (the ones that only do if they stack, in its tooltip)
+  const head = (label, hit) => {
+    const xs = cells.map(c => c[hit]), all = xs.filter(x => x.ok).length, st = xs.filter(x => x.ok && !x.okNow).length;
+    return `<div class="hd"><b>${label}</b>${hits[hit] ? ` · ${kk(hits[hit])}` : ''} <span class="cnt ${all ? 'ok' : 'bad'}"${st ? ` title="${st} of them only if they stack"` : ''}>${all} of ${xs.length} ✓</span></div>`;
+  };
+  let body = `<div class="hd"></div>${head('Normal attacks', 'normal')}${head('Super Attack', 'super')}`;
+  for (const g of [...new Set(cells.map(c => CHECK_GROUP[c.r.pos]))]) {
+    body += `<div class="grp">${g}</div>`;
+    for (const c of cells.filter(c => CHECK_GROUP[c.r.pos] === g)) {
+      const { r } = c, tag = r.pos === 'r1a' ? '<span class="chip l">L</span> ' : r.pos === 'f3' ? '<span class="chip f">F</span> ' : '';
+      const vsSuper = r.e.drSuper !== r.e.dr ? ` (against Supers: ${r.e.drSuper ? `−${r.e.drSuper}% damage` : 'no reduction'})` : '';
+      body += `<div class="nm" title="${esc(`${r.m.name}\n${CHECK_SLOT[r.pos]} · counted: ${counted(r.e, r.e.dr)}${vsSuper}`)}">${tag}${esc(shortName(r.m.name))}</div>${c.normal.html}${c.super.html}`;
+    }
+  }
+  return `<div class="defchk"><h4>🛡 DEF check · ${esc(last.enemy)} <span class="dim">· phase ${last.phase} · the DEF each unit needs to take 0 damage${last.crit ? ' · his critical hits (×1.5) counted' : ''}</span></h4>
+    <div class="sb">${body}</div>
+    <div class="leg"><span><i class="gsolid"></i>the DEF it has</span><span><i class="gstripe"></i>if it stacks every time it's out</span><span class="key"><b class="ok">green</b> = enough</span><span>needs = DEF for 0 damage, with its guard, damage reduction and type match-up counted</span></div></div>`;
 }
 
 function drawMaps() {
@@ -785,7 +828,7 @@ function openPicker(c) {
   m.querySelectorAll('[data-own]').forEach(s => s.onclick = () => { m.querySelectorAll('[data-own]').forEach(x => x.classList.toggle('on', x === s)); own = s.dataset.own; render(); });
   m.querySelector('.psearch').oninput = debounce(async ev => {
     const q = ev.target.value.trim();
-    if (q.length < 3) return load(base);
+    if (!q) return load(base);
     const seq = loadSeq;
     try {
       const found = (await api('/api/search?q=' + encodeURIComponent(q))).filter(u => u.rarity === 'LR' || u.rarity === 'UR').slice(0, 15).map(u => u.id);
@@ -1190,7 +1233,7 @@ let boxResults = [];
 let bqSeq = 0;
 $('#bq').oninput = debounce(async () => {
   const seq = ++bqSeq;
-  const q = $('#bq').value.trim(); if (q.length < 3) { boxResults = []; return ($('#bresults').innerHTML = ''); }
+  const q = $('#bq').value.trim(); if (!q) { boxResults = []; return ($('#bresults').innerHTML = ''); }
   $('#bresults').innerHTML = '<p class="loading">Searching…</p>';
   let res;
   try { res = await api('/api/search?q=' + encodeURIComponent(q)); }

@@ -377,7 +377,8 @@ function unitTests() {
   });
   // Gomah's 33% sits on a line that also says "chance of evading enemy's attack" (the old parser skipped any line
   // with "enem" in it); Kid Buu's 50% comes from his entrance animation, with no end.
-  await extra('damage reduction in the real Festival table: Gomah 33%, Kid Buu 50%, LSSJ Broly 18%, and the bar is the hit x type x (1 - reduction) x 1.03', async () => {
+  // Asked 2026-11-23 ("does the info take into account the damage reduction?"): yes, for the Super's bar too.
+  await extra('damage reduction in the real Festival table: Gomah 33%, Kid Buu 50%, LSSJ Broly 18%, and the bar is the hit x type x (1 - reduction) x 1.03, for normal attacks and the Super', async () => {
     const src = require('../lib/source'), t = team._t, ev = t.eventOf('festival');
     const fails = [];
     for (const [id, want] of [['1032311', 33], ['1034151', 50], ['1021671', 18]]) {
@@ -387,6 +388,9 @@ function unitTests() {
       const last = ev.enemies[ev.enemies.length - 1], e = sv.lastEnemies[sv.lastEnemies.length - 1];
       const bar = Math.ceil(last.atk * (1 + (last.saAtkBoostPct || 0) / 100) * (k.guard ? 0.8 : t.typeMult(last, u)) * (1 - want / 100) * 1.03);
       if (Math.abs(e.normal - bar) > 1) fails.push(`${u.name}: needs ${e.normal} vs ${last.name}, want ${bar}`);
+      const superBar = Math.ceil(last.superDamage * (last.crit ? 1.5 : 1) * (k.guard ? 0.8 : t.typeMult(last, u))
+        * (1 - Math.min(90, want + k.drHit.superDamage) / 100) * 1.03);
+      if (Math.abs(e.super - superBar) > 1) fails.push(`${u.name}: needs ${e.super} vs ${last.name}'s Super, want ${superBar}`);
     }
     return fails;
   });
@@ -476,6 +480,18 @@ function unitTests() {
     if (!t.proven?.exact) fails.push('not recognized as a posted clear');
     return fails;
   });
+
+  // The page's own save code in two app windows against the real server (test/state.js).
+  await extra('saved choices with the app open twice: each window saves only what it changed, the older one never puts old choices back',
+    require('./state'));
+
+  // Every search box from the first letter, through the real server on real data (test/search.js).
+  await extra('search from the first letter: "hi" finds Hit, "4" the Super Saiyan 4s, and 3+ letters keep all the site\'s own results',
+    require('./search'));
+
+  // The 🛡 DEF check panel, from the page's own code on a real Festival team (test/defcheck.js).
+  await extra('DEF check: every unit shows the DEF it needs against normal attacks and the Super (the model\'s numbers), never how much it\'s short',
+    require('./defcheck'));
 
   // Same input twice must give the same teams.
   const a = await team.build(SCENARIOS[0].picks, BOX, true, { event: 'festival' });

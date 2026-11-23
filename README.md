@@ -12,6 +12,8 @@ real players cleared with.
   (both forms of an exchange unit count), no exchanged-form cards, nothing you marked "I don't have it".
   A team that has to break a rule says so.
 - **Your box:** units you own come first, and missing units get a stand-in from your box.
+- **Search from the first letter:** each word you type matches the start of a word in a unit's name ("hi" finds
+  Hit, "4" the Super Saiyan 4s). From 3 letters it also looks at card titles and inside words.
 - **Mix & match by category:** "+ Add a category" opens every category (the ones with your units first). Tick
   one or more and choose Any of them (OR) or All of them (AND); the board shows the leaders whose skill names a
   chosen category and the units that match, yours first, with a ⚠ on the ones that leader doesn't boost.
@@ -20,6 +22,8 @@ real players cleared with.
   - real cleared teams closest to your picks, with a "Use this team" button;
   - only units that last: the builder adds a leader, friend or sub only if it stacks or players cleared the event
     with it (87% of the units in the posted Festival clears stack). Your own picks stay, with a ⚠ if they don't;
+  - a DEF check under the rotation map: the DEF each unit needs to take 0 damage from the last enemy's normal
+    attacks and from his Super, side by side, with a ✓ when it has it;
   - how long each unit takes 0 damage, counting its guard (every hit x0.80) and damage reduction in the slot it
     sits in, and each enemy's type and class against its own (a hit lands x0.90 to x1.50), and listing what it
     leaves out and why (an estimate only: it decides nothing).
