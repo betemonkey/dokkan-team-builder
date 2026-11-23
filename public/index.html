@@ -499,7 +499,7 @@ function rotationMap(t) {
     const fmtK = x => x >= 1e6 ? (x / 1e6).toFixed(2) + 'M' : Math.round(x / 1e3) + 'k';
     const pTxt = l => l.all ? 'never takes damage' : l.never ? 'takes damage the whole way'
       : l.from ? `safe from phase ${l.from} ${l.toEnd ? 'to the end' : `up to phase ${l.phase}`}` : l.phase ? `safe up to phase ${l.phase}, hit from phase ${l.breaksAt.phase} (${l.breaksAt.enemy})` : `takes damage from phase 1 (${l.breaksAt.enemy})`;
-    const survTip = sv ? `${sv.eventName} (neutral match-up)\n`
+    const survTip = sv ? `${sv.eventName} (${sv.typed ? `as ${sv.me}, against each enemy's type and class` : 'neutral match-up'})\n`
       + (sv.needed ? `DEF needed for 0 damage all event: ${fmtK(sv.needed.normal.need)} vs normal attacks, ${fmtK(sv.needed.super.need)} vs Super Attacks\n` : '')
       + `• First turn, DEF ${fmtK(sv.fresh)}: normal attacks ${pTxt(sv.freshLasts.normal)}; Super Attacks ${pTxt(sv.freshLasts.super)}\n`
       + `• By the end${sv.role && sv.role !== 'first' ? ` (attacks ${sv.role === 'second' ? '2nd' : 'as a floater'}: counted as if the unit before it always kills)` : ''}, DEF ${fmtK(sv.stacked)}: normal attacks ${pTxt(sv.stackedLasts.normal)}; Super Attacks ${pTxt(sv.stackedLasts.super)}\n`
@@ -547,7 +547,7 @@ function rotationMap(t) {
     <p class="note" style="margin:6px 0 0">Tap a unit for details, to replace it, or to mark it as one you don’t have.</p>`;
 }
 // 🛡 DEF check (event mode): the DEF each unit needs to take 0 damage from the last enemy's normal attacks, with its
-// guard and damage reduction in its slot, against the DEF it has there. Each bar is full at what the unit needs:
+// guard, damage reduction and type match-up in its slot, against the DEF it has there. Each bar is full at what the unit needs:
 // solid = without stacking, striped = if it stacks every time it's out (a unit that attacks 1st always does).
 const CHECK_SLOT = { r1a: 'Rotation 1 · 1st', r1b: 'Rotation 1 · 2nd', r2a: 'Rotation 2 · 1st', r2b: 'Rotation 2 · 2nd', f1: 'Floater', f2: 'Floater', f3: 'Floater' };
 function defCheck(t) {
@@ -564,7 +564,8 @@ function defCheck(t) {
     const need = e.normal, never = e.def ?? sv.stacked, stacks = e.defIfAttacks ?? never;
     const two = sv.role !== 'first' && Math.round(stacks) !== Math.round(never);
     const okNow = never >= need, okSt = stacks >= need;
-    const counted = [e.guard ? 'guard' : '', e.dr ? `−${e.dr}% damage` : ''].filter(Boolean).join(' · ') || 'nothing';
+    const counted = [e.guard ? 'guard' : '', !e.guard && e.mult && e.mult !== 1 && e.vs ? `${esc(e.vs)} hits ×${e.mult.toFixed(2)}` : '',
+      e.dr ? `−${e.dr}% damage` : ''].filter(Boolean).join(' · ') || 'nothing';
     const tag = pos === 'r1a' ? '<span class="chip l">L</span> ' : pos === 'f3' ? '<span class="chip f">F</span> ' : '';
     const bot = okNow ? `has ${k(never)} <b class="ok">✓</b>${never >= 2 * need ? ` (${(never / need).toFixed(1)}×)` : ''}`
       : two ? `has ${k(never)} without stacking · ${k(stacks)} if it stacks ${okSt ? '<b class="ok">✓</b>' : `<b class="bad">short ${k(need - stacks)}</b>`}`
@@ -574,7 +575,7 @@ function defCheck(t) {
       <div class="bot">${CHECK_SLOT[pos]} · counted: ${counted} · ${bot}</div></div>`;
   }).join('');
   return `<div class="defchk"><h4>🛡 DEF check · ${esc(last.enemy)}, normal attacks</h4>
-    <p class="sub">The DEF each unit needs to take 0 damage at phase ${last.phase}, with its guard and damage reduction in its slot.</p>
+    <p class="sub">The DEF each unit needs to take 0 damage at phase ${last.phase}, with its guard, damage reduction and type match-up in its slot.</p>
     <div class="bars">${bars}</div>
     <div class="dleg"><span><i class="now"></i>its DEF without stacking</span><span><i class="st"></i>if it stacks every time it's out</span><span>full bar = enough</span></div></div>`;
 }
@@ -856,8 +857,9 @@ async function openDetails(id, c) {
         (kit.notes || []).map(x => ' · ' + esc(x)).join('')}.
         ${kit.notCounted?.length ? `<br>Not counted, because it doesn't hold for every hit: ${kit.notCounted.map(x => `“${esc(x.text)}” (${esc(x.why)})`).join('; ')}.<br>` : ''}
         Base DEF ${sv.base.toLocaleString()} (${esc(sv.state)}, full Hidden Potential), with both leader skills and its active links.
-        Neutral, same-class match-up: type advantage (which also guards) isn't counted, as the event data has no enemy types. Enemies that can crit are counted at their worst (×1.5).
-        Enemy stats from DokkanInfo; formula from DokkanStats (same in a second damage calculator).</div>
+        ${sv.typed ? `Each enemy's type and class count against its ${esc(sv.me)}: a hit lands ×0.90 to ×1.50 (×1.15 when Super meets Extreme), and a guard makes every hit ×0.80 instead.`
+          : 'Neutral, same-class match-up: type advantage (which also guards) isn\'t counted, as the event data has no enemy types.'} Enemies that can crit are counted at their worst (×1.5).
+        Enemy stats from DokkanInfo${sv.typed ? ', with types, classes and phases from DOKKAN.FYI' : ''}; formula from DokkanStats (same in a second damage calculator).</div>
     </div></div></div>`;
   };
   const condMark = cond => {

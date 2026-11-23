@@ -17,7 +17,8 @@ real players cleared with.
   - only units that last: the builder adds a leader, friend or sub only if it stacks or players cleared the event
     with it (87% of the units in the posted Festival clears stack). Your own picks stay, with a ⚠ if they don't;
   - how long each unit takes 0 damage, counting its guard (every hit x0.80) and damage reduction in the slot it
-    sits in, and listing what it leaves out and why (an estimate only: it decides nothing).
+    sits in, and each enemy's type and class against its own (a hit lands x0.90 to x1.50), and listing what it
+    leaves out and why (an estimate only: it decides nothing).
 - **Details for any unit:** leader skill, Super Attacks, passive, links, exchange form, when it stacks enough
   to give up the first slot.
 
@@ -55,11 +56,14 @@ The suite builds real teams for a dozen pick sets and checks the rules on every 
 - Unit data: [web-api.eu](https://www.web-api.eu/dokkan/) and [dokkanbattle.net](https://dokkanbattle.net/),
   fetched when needed and cached locally.
 - Card art: [DokkanInfo](https://dokkaninfo.com/) assets, proxied and cached locally.
-- Event enemies: DokkanInfo event pages (`data/festival-of-battles.json`, `data/meteor-survival.json`).
+- Event enemies: DokkanInfo event pages (`data/festival-of-battles.json`, `data/meteor-survival.json`). The
+  Festival enemies' types, classes and phases (and its phase-49 Super Gogeta) come from the
+  [DOKKAN.FYI stage page](https://dokkan.fyi/stages/17070015).
 - Festival of Battles clears: a one-time snapshot of the players' clear board on
   [dokkan.game-db.org](https://dokkan.game-db.org/db/battle_festival/) (`data/festival-of-battles-clears.json`).
   The app never contacts that site.
 - Damage and DEF formulas: the [DokkanStats](https://dokkanstats.com/en/guides/) guides; the damage-taken formula
-  matches a second, independent [calculator](https://dokkan-battle-atk-calculator.netlify.app/).
+  matches a second, independent [calculator](https://dokkan-battle-atk-calculator.netlify.app/). Its type and
+  class table also matches the [dokkanessentials.com damage-received guide](https://dokkanessentials.com/Article-8).
 
 Dragon Ball Z Dokkan Battle and its art belong to Bandai Namco and their owners. This is an unofficial fan tool.

@@ -174,8 +174,9 @@ function unitTests() {
   eq('lasts: no stack, no clear data (Meteor)', t.fitsEvent(null, u('1032311', 0)), false);
   eq('clears counted over both forms', t.clearCount(cl, { id: '1000001', xform: { id: '1032311' } }), 3);
   // Guard and damage reduction in the 0-damage bar. Formula from the DokkanStats guide, and the same in a second,
-  // independent damage-taken calculator: hit = enemy ATK x type (1.00 neutral; 0.80 for EVERY hit when the unit
-  // guards) x (1 - damage reduction) x variance 1.03. 0 damage when DEF >= hit.
+  // independent damage-taken calculator: hit = enemy ATK x type (1.00 neutral, by type and class; 0.80 for EVERY hit
+  // when the unit guards) x (1 - damage reduction) x variance 1.03. 0 damage when DEF >= hit. These test enemies have
+  // no type, so they count neutral.
   const evN = n => ({ phases: n, enemies: Array.from({ length: n }, (_, i) => ({ name: 'E' + (i + 1), phase: i + 1, atk: 1000000, superDamage: 3000000 })) });
   const pu = (secs, extra = {}) => ({ id: '1000001', name: 'Test', cls: 'Super', type: 'AGL', categories: ['Fusion'], stacking: {}, ...extra,
     passive: secs.map(([cond, ...fx]) => ({ cond, fx: fx.map(text => ({ text })) })) });
@@ -197,6 +198,22 @@ function unitTests() {
   eq('bar: guard for the first 3 turns only', bars([["For 3 turns from the character's entry turn", 'Guards all attacks']], { n: 5 }), [1030000, 1030000, 1030000, 1030000, 1030000]);
   eq('bar: guard for 4 turns on entry', bars([["Activates the Entrance Animation upon the character's entry", 'Ki +3 and guards all attacks for 4 turns']]), [1030000, 1030000]);
   eq('bar: guard from the entrance animation, no end', bars([["Activates the Entrance Animation upon the character's entry", 'Guards all attacks']]), [824000, 824000]);
+  // Type and class (asked 2026-11-23): the enemy's type and class against the unit's (here Super AGL). Same table in
+  // the damage-taken calculator and in dokkanessentials.com's damage-received guide.
+  const evT = (type, cls, more = {}) => ({ phases: 1, enemies: [{ name: 'E1', phase: 1, atk: 1000000, superDamage: 3000000, type, cls, ...more }] });
+  const tbar = (type, cls, { secs = [['Basic effect(s)', 'ATK & DEF 100% ▲']], key = 'atk', more } = {}) =>
+    Math.round(t.hitBars(t.defenseKit(pu(secs), [], 'first'), evT(type, cls, more), 'r1a', true, false, { type: 'AGL', cls: 'Super' })[key][0]);
+  eq('type: neutral, same class x1.00', tbar('INT', 'Super'), 1030000);
+  eq('type: neutral, Super vs Extreme x1.15', tbar('INT', 'Extreme'), 1184500);
+  eq("type: the enemy's type beats the unit's (TEQ > AGL), same class x1.25", tbar('TEQ', 'Super'), 1287500);
+  eq("type: the enemy's type beats the unit's, Super vs Extreme x1.50", tbar('TEQ', 'Extreme'), 1545000);
+  eq("type: the unit's type beats the enemy's (AGL > STR), same class x0.90", tbar('STR', 'Super'), 927000);
+  eq("type: the unit's type beats the enemy's, Super vs Extreme x1.00", tbar('STR', 'Extreme'), 1030000);
+  eq('type: a guard is x0.80 whatever the match-up', tbar('TEQ', 'Extreme', { secs: [['Basic effect(s)', 'Guards all attacks']] }), 824000);
+  eq('type: an enemy without a type counts neutral', tbar(undefined, undefined), 1030000);
+  eq('type: Super Attacks too', tbar('INT', 'Extreme', { key: 'superDamage' }), 3553500);
+  eq('type: a unit without a type counts neutral', t.typeMult({ type: 'TEQ', cls: 'Extreme' }, {}), 1);
+  eq('a boss whose Super raises its ATK 50% hits x1.5 with its normal attacks after it', tbar('INT', 'Super', { more: { saAtkBoostPct: 50 } }), 1545000);
   eq('bar: guard from the 3rd turn on', bars([["Starting from the 3rd turn from the character's entry turn", 'Guards all attacks']], { n: 4 }), [1030000, 1030000, 824000, 824000]);
   eq('bar: guard from the 3rd turn, 2nd rotation (comes out on turn 2)', bars([["Starting from the 3rd turn from the character's entry turn", 'Guards all attacks']], { n: 5, pos: 'r2a' }), [1030000, 1030000, 1030000, 824000, 824000]);
   eq('bar: damage reduction from turn 2 of the battle', bars([['Starting from the 2nd turn from the start of battle', 'Damage reduction rate 50% ▲']]), [1030000, 515000]);
@@ -334,8 +351,8 @@ function unitTests() {
   });
   // Asked 2026-11-22: count the unit's guard and damage reduction. The Angel duo (1030481) guards "as the 2nd or 3rd
   // attacker in a turn": as the friend (3rd slot) every hit counts x0.80, as the leader (attacks 1st) it doesn't.
-  await extra('guard in the real Festival table: the Angel duo needs 20% less DEF as a floater than as the 1st attacker', async () => {
-    const src = require('../lib/source'), t = team._t;
+  await extra('guard in the real Festival table: as a floater the Angel duo takes every hit at x0.80, as the 1st attacker at its type match-up', async () => {
+    const src = require('../lib/source'), t = team._t, ev = t.eventOf('festival');
     const u = await src.unit('1030481'), lead = { L: u, F: u }, st = { conds: [], def: 0 };
     const asFirst = await t.survival(lead, u, st, 'festival', 'r1a'), asFloater = await t.survival(lead, u, st, 'festival', 'f3');
     const fails = [];
@@ -344,15 +361,16 @@ function unitTests() {
     if (!asFloater.kit.guard) fails.push('doesn\'t guard as the 3rd attacker');
     if (!asFirst.kit.notCounted.some(x => /guards all attacks/i.test(x.text) && /2nd or 3rd/.test(x.why))) fails.push('the leader\'s kit doesn\'t say why its guard is left out');
     for (const [j, e] of asFloater.lastEnemies.entries()) {
-      const r = e.normal / asFirst.lastEnemies[j].normal;
-      if (Math.abs(r - 0.8) > 0.001) fails.push(`${e.enemy}: needed DEF ratio ${r.toFixed(3)}, want 0.800`);
+      const foe = ev.enemies.find(x => x.name === e.enemy && x.phase === e.phase);
+      const r = e.normal / asFirst.lastEnemies[j].normal, want = 0.8 / t.typeMult(foe, u);
+      if (Math.abs(r - want) > 0.001) fails.push(`${e.enemy}: needed DEF ratio ${r.toFixed(3)}, want ${want.toFixed(3)}`);
       if (!e.guard || asFirst.lastEnemies[j].guard) fails.push(`${e.enemy}: guard flag wrong in the table`);
     }
     return fails;
   });
   // Gomah's 33% sits on a line that also says "chance of evading enemy's attack" (the old parser skipped any line
   // with "enem" in it); Kid Buu's 50% comes from his entrance animation, with no end.
-  await extra('damage reduction in the real Festival table: Gomah 33%, Kid Buu 50%, LSSJ Broly 18%, and the bar is the hit x (1 - reduction) x 1.03', async () => {
+  await extra('damage reduction in the real Festival table: Gomah 33%, Kid Buu 50%, LSSJ Broly 18%, and the bar is the hit x type x (1 - reduction) x 1.03', async () => {
     const src = require('../lib/source'), t = team._t, ev = t.eventOf('festival');
     const fails = [];
     for (const [id, want] of [['1032311', 33], ['1034151', 50], ['1021671', 18]]) {
@@ -360,9 +378,29 @@ function unitTests() {
       if (k.dr !== want) { fails.push(`${u.name}: damage reduction ${k.dr}%, want ${want}%`); continue; }
       const sv = await t.survival({ L: u, F: u }, u, { conds: [], def: 0 }, 'festival', 'r1a');
       const last = ev.enemies[ev.enemies.length - 1], e = sv.lastEnemies[sv.lastEnemies.length - 1];
-      const bar = Math.ceil(last.atk * (k.guard ? 0.8 : 1) * (1 - want / 100) * 1.03);
+      const bar = Math.ceil(last.atk * (1 + (last.saAtkBoostPct || 0) / 100) * (k.guard ? 0.8 : t.typeMult(last, u)) * (1 - want / 100) * 1.03);
       if (Math.abs(e.normal - bar) > 1) fails.push(`${u.name}: needs ${e.normal} vs ${last.name}, want ${bar}`);
     }
+    return fails;
+  });
+  // Asked 2026-11-23: each enemy's type, class and phase, from the game data on DOKKAN.FYI's stage page. In the game,
+  // Phase 45/50 is Majin Buu (Good), Extreme INT; the Angel duo (Super AGL) takes his Kamehameha x1.15.
+  await extra('type and class in the real Festival table: 57 enemies over 50 phases, Buu Extreme INT at phase 45, Super Gogeta at 49, the Angel duo takes Buu x1.15', async () => {
+    const src = require('../lib/source'), t = team._t, ev = t.eventOf('festival');
+    const fails = [];
+    if (ev.enemies.length !== 57) fails.push(`${ev.enemies.length} enemies, want 57`);
+    if (new Set(ev.enemies.map(e => e.phase)).size !== 50) fails.push('not 50 phases');
+    if (!ev.enemies.every(e => e.type && e.cls)) fails.push('an enemy without a type or class');
+    const buu = ev.enemies.find(e => e.name === 'Majin Buu (Good)');
+    if (buu?.phase !== 45 || buu.cls !== 'Extreme' || buu.type !== 'INT') fails.push(`Buu: phase ${buu?.phase}, ${buu?.cls} ${buu?.type}`);
+    const gog = ev.enemies.find(e => e.name === 'Super Gogeta' && e.phase === 49);
+    if (!gog || gog.superDamage !== 28000000 || gog.saAtkBoostPct !== 50) fails.push('Super Gogeta (phase 49) missing or wrong');
+    const u = await src.unit('4030491');
+    if (u.cls !== 'Super' || u.type !== 'AGL') fails.push(`the Angel duo is ${u.cls} ${u.type}, want Super AGL`);
+    const sv = await t.survival({ L: u, F: u }, u, { conds: [], def: 0 }, 'festival', 'f3');
+    const row = sv?.lastEnemies.find(e => e.enemy === 'Majin Buu (Good)'), want = Math.ceil(5600000 * 1.15 * 1.03);
+    if (!row || row.super !== want || row.vs !== 'Extreme INT') fails.push(`the Angel duo vs Buu's Super: ${row?.super} (${row?.vs}), want ${want} (Extreme INT)`);
+    if (!sv?.typed || sv.me !== 'Super AGL') fails.push('the survival result doesn\'t say it counts the match-up');
     return fails;
   });
   // The ground the event rule stands on: "it stacks" has to describe the units players really clear with.
