@@ -12,6 +12,10 @@ real players cleared with.
   (both forms of an exchange unit count), no exchanged-form cards, nothing you marked "I don't have it".
   A team that has to break a rule says so.
 - **Your box:** units you own come first, and missing units get a stand-in from your box.
+- **Mix & match by category:** "+ Add a category" opens every category (the ones with your units first). Tick
+  one or more and choose Any of them (OR) or All of them (AND); the board shows the leaders whose skill names a
+  chosen category and the units that match, yours first, with a ⚠ on the ones that leader doesn't boost.
+  "Build team" builds it with that leader as leader and friend.
 - **Events (Festival of Battles, Meteor Survival):**
   - real cleared teams closest to your picks, with a "Use this team" button;
   - only units that last: the builder adds a leader, friend or sub only if it stacks or players cleared the event

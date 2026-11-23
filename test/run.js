@@ -5,7 +5,7 @@
 // Exit code 1 when any rule fails, so it can gate a release.
 const team = require('../lib/team');
 
-const BOX = ['1032311', '1031921', '1021671'];   // Monkey's registered box (his three picks)
+const BOX = ['1032311', '1031921', '1021671'];   // a small registered box (three picks)
 const SCENARIOS = [
   { name: 'Broly (Wrathful) + Gomah + LSSJ Broly', picks: ['1031921', '1032311', '1021671'] },
   { name: '... + SSJ4 Vegeta + SSJ4 Goku (exchange)', picks: ['1031921', '1032311', '1021671', '1032881'] },
@@ -214,6 +214,13 @@ function unitTests() {
   eq('type: Super Attacks too', tbar('INT', 'Extreme', { key: 'superDamage' }), 3553500);
   eq('type: a unit without a type counts neutral', t.typeMult({ type: 'TEQ', cls: 'Extreme' }, {}), 1);
   eq('a boss whose Super raises its ATK 50% hits x1.5 with its normal attacks after it', tbar('INT', 'Super', { more: { saAtkBoostPct: 50 } }), 1545000);
+  // Mix & match by category (asked 2026-11-23): AND = in every chosen category, OR = in at least one; an exchanged
+  // form (4xxxxxx) isn't a card of its own.
+  const cm = (lists, mode) => t.categoryMatch(lists.map(l => l.map(id => ({ id }))), mode).sort();
+  eq('category match AND: only the cards in every list', cm([['1000001', '1000002', '1000003'], ['1000002', '1000003'], ['1000003', '1000004']], 'and'), ['1000003']);
+  eq('category match OR: the cards in at least one list, once each', cm([['1000001', '1000002'], ['1000002', '1000003']], 'or'), ['1000001', '1000002', '1000003']);
+  eq('category match: an exchanged form is left out', cm([['1000001', '4000001']], 'or'), ['1000001']);
+  eq('category match: one category is the same in AND and OR', cm([['1000002', '1000001']], 'and'), cm([['1000002', '1000001']], 'or'));
   eq('bar: guard from the 3rd turn on', bars([["Starting from the 3rd turn from the character's entry turn", 'Guards all attacks']], { n: 4 }), [1030000, 1030000, 824000, 824000]);
   eq('bar: guard from the 3rd turn, 2nd rotation (comes out on turn 2)', bars([["Starting from the 3rd turn from the character's entry turn", 'Guards all attacks']], { n: 5, pos: 'r2a' }), [1030000, 1030000, 1030000, 824000, 824000]);
   eq('bar: damage reduction from turn 2 of the battle', bars([['Starting from the 2nd turn from the start of battle', 'Damage reduction rate 50% ▲']]), [1030000, 515000]);
@@ -402,6 +409,35 @@ function unitTests() {
     if (!row || row.super !== want || row.vs !== 'Extreme INT') fails.push(`the Angel duo vs Buu's Super: ${row?.super} (${row?.vs}), want ${want} (Extreme INT)`);
     if (!sv?.typed || sv.me !== 'Super AGL') fails.push('the survival result doesn\'t say it counts the match-up');
     return fails;
+  });
+  // Asked 2026-11-23: mix & match by category (approved mockup: mockups/category-picker.html), on the real category
+  // pages. The box is Gomah, Broly (Wrathful), LSSJ Broly and SSJ3 Goku.
+  await extra('category board on real data: AND units are in every category, OR in at least one, leaders name a chosen category, boosts are the leader skill\'s', async () => {
+    const src = require('../lib/source');
+    const box = ['1032311', '1031921', '1021671', '1034201'], fails = [];
+    const ps = await src.categoryMembers('Pure Saiyans'), mb = await src.categoryMembers('Movie Bosses');
+    const inPs = new Set(ps.map(m => m.id)), inMb = new Set(mb.map(m => m.id)), card = id => !/^4\d{6}$/.test(id);
+    const and = await team.categoryBoard(['Pure Saiyans', 'Movie Bosses'], 'and', box);
+    const or = await team.categoryBoard(['Pure Saiyans', 'Movie Bosses'], 'or', box);
+    const wantAnd = ps.filter(m => inMb.has(m.id) && card(m.id)).length, wantOr = [...new Set([...inPs, ...inMb])].filter(card).length;
+    if (and.match !== wantAnd) fails.push(`AND: ${and.match} match, want ${wantAnd}`);
+    if (or.match !== wantOr) fails.push(`OR: ${or.match} match, want ${wantOr}`);
+    if (and.yours !== 2) fails.push(`AND: ${and.yours} of yours, want 2 (Broly (Wrathful) and LSSJ Broly)`);
+    if (or.yours !== 3) fails.push(`OR: ${or.yours} of yours, want 3 (+ SSJ3 Goku)`);
+    if (!and.leaders.length || !or.leaders.length) return [...fails, 'no leader found'];
+    for (const l of [...and.leaders, ...or.leaders])
+      if (!l.skill.cats.some(c => ['pure saiyans', 'movie bosses'].includes(src.normCat(c)))) fails.push(`${l.lead.name}: its skill doesn't name a chosen category`);
+    for (const l of and.leaders) for (const c of l.cands) if (!inPs.has(c.id) || !inMb.has(c.id)) fails.push(`AND: ${c.name} (${c.id}) isn't in both`);
+    for (const l of or.leaders) for (const c of l.cands) if (!inPs.has(c.id) && !inMb.has(c.id)) fails.push(`OR: ${c.name} (${c.id}) is in neither`);
+    const top = and.leaders[0], L = await src.unit(top.lead.id);
+    for (const c of top.cands.slice(0, 6)) { const want = team.boostFor(L, await src.unit(c.id)); if (c.boost !== want) fails.push(`${c.name}: boost ${c.boost}, want ${want}`); }
+    const firstOther = top.cands.findIndex(c => !c.owned);
+    if (firstOther > -1 && top.cands.slice(firstOther).some(c => c.owned)) fails.push('your units aren\'t listed first');
+    const idx = await team.categoryIndex(box);
+    if (idx.cats.length < 90) fails.push(`only ${idx.cats.length} categories in the popup's list`);
+    const psRow = idx.cats.find(c => c.name === 'Pure Saiyans');
+    if (psRow?.yours !== 3) fails.push(`Pure Saiyans: ${psRow?.yours} of yours in the popup, want 3`);
+    return [...new Set(fails)].slice(0, 8);
   });
   // The ground the event rule stands on: "it stacks" has to describe the units players really clear with.
   await extra('the event rule matches real clears: at least 85% of the unit slots in the 155 posted Festival clears stack', async () => {

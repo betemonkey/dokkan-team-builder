@@ -46,7 +46,7 @@ const readBox = () => { try { const b = JSON.parse(fs.readFileSync(BOX_FILE, 'ut
 // The page's saved choices (tray, "I don't have it", kept leader, event), kept on disk: browser storage is tied to
 // the page's address, and the desktop app gets a new port every launch, so it used to forget them on restart.
 const STATE_FILE = path.join(DATA_DIR, 'state.json');
-const STATE_KEYS = ['dk-picks', 'dk-excluded', 'dk-leader', 'dk-event', 'dk-friend', 'dk-prev'];
+const STATE_KEYS = ['dk-picks', 'dk-excluded', 'dk-leader', 'dk-event', 'dk-friend', 'dk-prev', 'dk-cats'];
 const readState = () => { try { const s = JSON.parse(fs.readFileSync(STATE_FILE, 'utf8')); return s && typeof s === 'object' && !Array.isArray(s) ? s : {}; } catch { return {}; } };
 // Write to a temp file, then rename: a crash or a full disk mid-write can't leave a half-written box or state.
 function writeAtomic(file, text) {
@@ -175,6 +175,26 @@ http.createServer(async (req, res) => {
         return send(res, 200, await team.build(picks, readBox().map(b => b.id), url.searchParams.get('festival') === '1',
           { exclude: ids(url, 'exclude'), leader: ids(url, 'leader')[0], friend: ids(url, 'friend')[0], mine: url.searchParams.has('mine') ? ids(url, 'mine') : undefined, event: (url.searchParams.get('event') || '').replace(/[^a-z]/g, ''),
             progress: pid ? p => progress.set(pid, p) : null, cancelled: pid ? () => cancelled.has(pid) : null }));
+      } finally { if (pid) setTimeout(() => progress.delete(pid), 5000); }
+    }
+
+    // Mix & match by category (approved mockup: mockups/category-picker.html)
+    if (url.pathname === '/api/categories') {
+      const r = await team.categoryIndex(readBox().map(b => b.id));
+      src.warmCategories(r.cats.filter(c => c.yours).map(c => c.name));   // card counts for the uncached ones, in the background
+      return send(res, 200, r);
+    }
+    const catNames = () => url.searchParams.getAll('c').map(s => s.slice(0, 80)).slice(0, 8);
+    if (url.pathname === '/api/catmembers') {
+      const out = {};
+      for (const n of catNames()) out[n] = (await src.categoryMembers(n)).map(m => m.id);
+      return send(res, 200, out);
+    }
+    if (url.pathname === '/api/catboard') {
+      const pid = (url.searchParams.get('pid') || '').replace(/[^a-z0-9]/gi, '').slice(0, 32);
+      try {
+        return send(res, 200, await team.categoryBoard(catNames(), url.searchParams.get('mode'), readBox().map(b => b.id),
+          { exclude: ids(url, 'exclude'), progress: pid ? p => progress.set(pid, p) : null, cancelled: pid ? () => cancelled.has(pid) : null }));
       } finally { if (pid) setTimeout(() => progress.delete(pid), 5000); }
     }
 

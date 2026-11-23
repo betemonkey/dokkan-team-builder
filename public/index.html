@@ -260,6 +260,64 @@
     .slots { grid-template-columns:repeat(4, minmax(0,1fr)); row-gap:14px; }
     .dkt { --w:62px; }
   }
+  /* ---------- mix & match by category (approved mockup: mockups/category-picker.html) ---------- */
+  #mix h3 { margin-top:4px; }
+  .mx-chips { display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin:0 0 6px; }
+  .mx-cchip { border:1px solid var(--line); background:transparent; color:var(--text); border-radius:999px; padding:4px 10px; font:inherit; font-size:12px; cursor:pointer; }
+  .mx-cchip.on { background:var(--accent); border-color:var(--accent); color:#111; font-weight:700; }
+  .mx-cchip.add { border-style:dashed; color:var(--dim); }
+  .mx-cchip.mode { background:#2b3140; border-color:#3a4256; color:#dfe6ff; font-weight:700; }
+  .mx-match { font-size:12.5px; color:var(--dim); margin:0 0 10px; } .mx-match b { color:var(--text); } .mx-match .y { color:var(--ok); font-weight:700; }
+  .mx-twocol { display:grid; gap:12px; } @media (min-width:760px) { .mx-twocol { grid-template-columns:minmax(0, 5fr) minmax(0, 7fr); } }
+  .mx-twocol h3, #mix .mx-h { font-size:14px; margin:6px 0 6px; } .mx-twocol h3 .note { font-weight:400; font-size:12px; }
+  .mx-leaders { display:flex; flex-direction:column; gap:5px; margin:0 0 10px; }
+  .mx-leaders label { display:flex; gap:8px; align-items:flex-start; background:var(--card); border:1px solid var(--line); border-radius:10px; padding:6px 8px; font-size:12px; cursor:pointer; min-width:0; }
+  .mx-leaders label.on { border-color:var(--accent); } .mx-leaders label b { color:var(--text); } .mx-leaders label > span { color:var(--dim); min-width:0; }
+  .mx-leaders .cov { display:block; margin-top:2px; color:var(--ok); } .mx-leaders .cov.w { color:#ffb25e; }
+  .mx-slots { display:grid; gap:6px; margin:0 0 10px; grid-template-columns:repeat(4, minmax(0, 1fr)); }
+  @media (min-width:560px) { .mx-slots { grid-template-columns:repeat(7, minmax(0, 1fr)); } }
+  .mx-u { position:relative; min-width:0; background:#22262e; border:1px solid var(--line); border-radius:9px; overflow:hidden; padding-bottom:4px; cursor:pointer; }
+  .mx-u .ty { display:block; font-size:9px; font-weight:800; letter-spacing:.04em; color:#fff; padding:2px 5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .mx-u:has(.rl) .ty { padding-right:20px; }
+  .mx-u .ty.AGL { background:var(--dk-agl); } .mx-u .ty.TEQ { background:var(--dk-teq); } .mx-u .ty.INT { background:var(--dk-int); }
+  .mx-u .ty.STR { background:var(--dk-str); } .mx-u .ty.PHY { background:var(--dk-phy); }
+  .mx-u .nm { font-size:11px; line-height:1.25; padding:3px 5px 0; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; min-height:31px; overflow-wrap:anywhere; }
+  .mx-u .yo { display:block; font-size:10px; padding:1px 5px 0; color:var(--ok); font-weight:700; min-height:15px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .mx-u .yo.no { color:var(--dim); font-weight:400; } .mx-u .yo.w { color:#ffb25e; }
+  .mx-u .rl { position:absolute; top:2px; right:3px; font-size:9px; line-height:12px; font-weight:800; padding:0 4px; border-radius:4px; }
+  .mx-u .rl.l { background:var(--lead); color:#111; } .mx-u .rl.f { background:var(--friend); color:#fff; }
+  .mx-u.sel { outline:2px solid var(--accent); outline-offset:-1px; }
+  .mx-empty { border:1px dashed #4a505c; border-radius:9px; display:grid; place-items:center; min-height:72px; color:var(--dim); font:inherit; font-size:11px; background:transparent; cursor:pointer; }
+  .mx-empty.on { border:2px solid var(--accent); color:var(--accent); }
+  .mx-cands { display:flex; flex-direction:column; gap:5px; }
+  .mx-cand { display:grid; grid-template-columns:8px minmax(0, 1fr) auto; gap:8px; align-items:center; background:var(--card); border:1px solid var(--line); border-radius:10px; padding:6px 8px; font-size:12.5px; }
+  .mx-cand .bar { width:8px; height:30px; border-radius:4px; } .mx-cand .bar.AGL { background:var(--dk-agl); } .mx-cand .bar.TEQ { background:var(--dk-teq); }
+  .mx-cand .bar.INT { background:var(--dk-int); } .mx-cand .bar.STR { background:var(--dk-str); } .mx-cand .bar.PHY { background:var(--dk-phy); }
+  .mx-cand .nm { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .mx-cand .s { display:block; color:var(--dim); font-size:11px; } .mx-cand .s .w { color:#ffb25e; } .mx-cand .s .y { color:var(--ok); }
+  #mix .btn { font-size:12.5px; padding:6px 12px; } #mix .btn.ghost { color:var(--text); font-weight:600; }
+  .mx-foot { display:flex; gap:8px; justify-content:space-between; flex-wrap:wrap; border-top:1px solid var(--line); margin-top:12px; padding-top:10px; }
+  .cp-pop { position:fixed; inset:0; z-index:70; background:#000a; display:flex; justify-content:center; align-items:flex-start; padding:60px 16px 16px; }
+  .cp-sheet { background:#191c22; border:1px solid #3a3f49; border-radius:16px; width:620px; max-width:100%; height:min(660px, calc(100vh - 76px)); display:flex; flex-direction:column; min-width:0; }
+  @media (max-width:520px) { .cp-pop { padding:16px 0 0; } .cp-sheet { border-radius:16px 16px 0 0; height:calc(100vh - 16px); } }
+  .cp-sheet .hd { display:flex; justify-content:space-between; align-items:center; padding:10px 12px 6px; }
+  .cp-sheet .hd b { font-size:15px; } .cp-sheet .x { border:0; background:transparent; color:var(--dim); font-size:18px; padding:0 4px; cursor:pointer; }
+  .cp-sheet .mid { padding:0 12px; }
+  .cp-modes { display:grid; grid-template-columns:1fr 1fr; border:1px solid var(--line); border-radius:10px; overflow:hidden; margin:0 0 4px; }
+  .cp-modes button { border:0; background:transparent; color:var(--dim); font:inherit; font-size:12.5px; padding:7px 6px; cursor:pointer; }
+  .cp-modes button b { display:block; font-size:13px; } .cp-modes button.on { background:var(--accent); color:#111; } .cp-modes button.on b { color:#111; }
+  .cp-modetxt { font-size:12px; color:var(--dim); margin:0 0 8px; min-height:18px; }
+  .cp-sheet input[type=text] { padding:7px 10px; font-size:13px; margin:0 0 8px; }
+  .cp-list { flex:1; overflow:auto; padding:0 12px 8px; min-height:0; }
+  .cp-list h4 { margin:8px 0 6px; font-size:12px; color:var(--dim); font-weight:600; text-transform:uppercase; letter-spacing:.05em; }
+  .cp-grid { display:grid; gap:6px; grid-template-columns:repeat(2, minmax(0, 1fr)); } @media (min-width:600px) { .cp-grid { grid-template-columns:repeat(3, minmax(0, 1fr)); } }
+  .cp-cat { text-align:left; border:1px solid var(--line); background:var(--card); color:var(--text); border-radius:10px; padding:6px 8px; min-width:0; position:relative; font:inherit; cursor:pointer; }
+  .cp-cat b { display:block; font-size:12.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding-right:16px; }
+  .cp-cat span { display:block; font-size:10.5px; color:var(--dim); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; } .cp-cat span i { font-style:normal; color:var(--ok); font-weight:700; }
+  .cp-cat.on { border-color:var(--accent); background:#3a2c12; } .cp-cat.on::after { content:'✓'; position:absolute; top:5px; right:7px; color:var(--accent); font-weight:800; font-size:13px; }
+  .cp-sheet .ft { border-top:1px solid var(--line); padding:8px 12px 10px; display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap; }
+  .cp-sheet .ft .res { font-size:12.5px; color:var(--dim); } .cp-sheet .ft .res b { color:var(--text); } .cp-sheet .ft .res .y { color:var(--ok); font-weight:700; } .cp-sheet .ft .res .z { color:#ffb25e; }
+  .cp-sheet .ft .acts { display:flex; gap:6px; } .cp-sheet .btn { font-size:12.5px; padding:6px 12px; } .cp-sheet .btn.ghost { color:var(--text); font-weight:600; }
 </style>
 </head>
 <body>
@@ -271,6 +329,7 @@
   </div>
 
   <section id="view-build">
+    <div id="mix"></div>
     <input type="text" id="q" placeholder="Search units and tap the ones you want in your team (up to 6)…">
     <div id="results" class="grid"></div>
     <div id="boxPickWrap" hidden>
@@ -310,7 +369,7 @@ const slimUnit = u => ({ id: String(u.id), title: String(u.title || ''), name: S
 // Your choices (tray, "I don't have it", kept leader, event) are kept in a file by the server, so they survive
 // restarts: the desktop app gets a new address each launch and browser storage is tied to the address.
 // The file is read once, before anything below reads the saved values; every change is written back.
-const STATE_KEYS = ['dk-picks', 'dk-excluded', 'dk-leader', 'dk-event', 'dk-friend', 'dk-prev'];
+const STATE_KEYS = ['dk-picks', 'dk-excluded', 'dk-leader', 'dk-event', 'dk-friend', 'dk-prev', 'dk-cats'];
 let stateTimer = null;
 function syncState() {
   clearTimeout(stateTimer);
@@ -1155,6 +1214,203 @@ $('#bresults').onclick = async e => {
   renderBox();
 };
 
+// ===== Mix & match by category (approved mockup: mockups/category-picker.html) =====
+// "＋ Add a category" opens a popup with every category (the ones with your units first). Tick one or more, choose
+// Any of them (OR: a unit counts if it's in at least one) or All of them (AND: only if it's in every one), then OK.
+// The board lists the leaders whose skill names a chosen category and the units that match, yours first.
+// "Build team ▶" puts the leader and the filled slots in your tray, keeps that leader (also as the friend) and builds.
+const mix = (() => {
+  const v = loadSaved('dk-cats', x => x && typeof x === 'object' && Array.isArray(x.sel), null) || {};
+  return { sel: (v.sel || []).filter(s => typeof s === 'string' && s.length <= 80).slice(0, 8), mode: v.mode === 'or' ? 'or' : 'and',
+    board: null, lead: 0, slots: null, at: 0, busy: false, err: '' };
+})();
+const saveMix = () => { try { localStorage.setItem('dk-cats', JSON.stringify({ sel: mix.sel, mode: mix.mode })); } catch {} syncState(); };
+let catIndex = null;            // [{ name, cards, yours }]: the popup's list
+const catMembers = new Map();   // category -> card ids, for the popup's live count
+let pop = null;                 // the open popup: { draft: Set, mode, q, err }
+const typeCls = t => (TYPES.includes(t) ? t : '');
+const clsTxt = u => `${u.cls === 'Extreme' ? 'EXT' : 'SUP'} ${esc(u.type)}`;
+function mxTile(u, role, extra = '', warn = false) {
+  const yo = role === 'f' ? 'borrowed' : warn ? '⚠ not boosted' : u.owned ? '✓ yours' : 'not in box';
+  return `<div class="mx-u${extra}" title="${esc(u.title)} - ${esc(u.name)}"><span class="ty ${typeCls(u.type)}">${clsTxt(u)}</span>${role ? `<span class="rl ${role}">${role.toUpperCase()}</span>` : ''}
+    <span class="nm">${esc(u.name)}</span><span class="yo${warn ? ' w' : u.owned && role !== 'f' ? '' : ' no'}">${yo}</span></div>`;
+}
+const mxSkill = l => `${l.skill.cats.map(c => `“${esc(c)}”`).join(' or ')} +${l.skill.pct}%${l.skill.add ? ` (+${l.skill.add}% more for some)` : ''}`;
+const mxLeader = () => mix.board?.leaders[Math.min(mix.lead, mix.board.leaders.length - 1)] || null;
+// Your units this leader boosts go in first; empty slots get the boosted units first when you ask it to fill the rest.
+function mxStartSlots() {
+  const L = mxLeader(); if (!L) { mix.slots = null; return; }
+  const names = new Set([L.lead.name]), s = [];
+  for (const u of L.cands) if (u.owned && u.boost >= 0 && !names.has(u.name) && s.length < 5) { s.push(u); names.add(u.name); }
+  mix.slots = [...s, ...Array(5 - s.length).fill(null)];
+  const nx = mix.slots.findIndex(x => !x); mix.at = nx < 0 ? 4 : nx;
+}
+const mxFillOrder = L => L.cands.slice().sort((a, b) => (b.boost >= 0) - (a.boost >= 0) || b.owned - a.owned || b.boost - a.boost);
+function renderMix() {
+  const sel = mix.sel, b = mix.board;
+  const chips = `<div class="mx-chips">${sel.length > 1 ? `<button class="mx-cchip mode" data-mflip title="Switch between Any of (OR) and All of (AND)">${mix.mode === 'and' ? 'All of ▾' : 'Any of ▾'}</button>` : ''}
+    ${sel.map(c => `<button class="mx-cchip on" data-mdel="${esc(c)}" title="Remove this category">${esc(c)} ✕</button>`).join('')}<button class="mx-cchip add" data-mopen>＋ Add a category</button></div>`;
+  let body = '';
+  if (!sel.length) body = '<p class="mx-match">Add a category to start.</p>';
+  else if (mix.busy) body = '<p class="mx-match loading">Working out the leaders and units… (the first time can take a minute)</p>';
+  else if (mix.err) body = `<p class="mx-match">Couldn’t work it out: ${esc(mix.err)}</p>`;
+  else if (b) {
+    const line = `<p class="mx-match"><b>${b.match}</b> units match${sel.length > 1 ? (b.mode === 'and' ? ' (in every one)' : ' (in at least one)') : ''} · <span class="y">${b.yours} of yours</span></p>`;
+    const L = mxLeader();
+    if (!b.match) body = '<p class="mx-match">No unit is in all of these: switch to “Any of”, or remove a category.</p>';
+    else if (!L) body = line + '<p class="mx-match">No leader whose skill names these categories was found.</p>';
+    else {
+      if (!mix.slots) mxStartSlots();
+      const used = new Set([L.lead.name, ...mix.slots.filter(Boolean).map(u => u.name)]);
+      const cands = L.cands.filter(u => !used.has(u.name));
+      const left = `<h3>Leader <span class="note">(its skill boosts a chosen category)</span></h3>
+        <div class="mx-leaders">${b.leaders.map((x, k) => `<label class="${x === L ? 'on' : ''}" data-mlead="${k}"><input type="radio" name="mxlead" ${x === L ? 'checked' : ''}>
+          <span><b>${esc(x.lead.name)}</b> <span class="note">${clsTxt(x.lead)}${x.lead.owned ? ' · ✓ yours' : ''}</span><br>${mxSkill(x)}
+          <span class="cov${x.covered < x.of ? ' w' : ''}">${x.covered < x.of ? '⚠' : '✓'} boosts ${x.covered} of the ${x.of} matching units shown</span></span></label>`).join('')}</div>`;
+      const slotHtml = mix.slots.map((u, k) => u ? mxTile(u, '', k === mix.at ? ' sel' : '', u.boost < 0).replace('<div class="mx-u', `<div data-mslot="${k}" class="mx-u`)
+        : `<button class="mx-empty${k === mix.at ? ' on' : ''}" data-mslot="${k}">＋ slot ${k + 2}</button>`).join('');
+      const right = `<h3>Your team</h3>
+        <div class="mx-slots">${mxTile(L.lead, 'l')}${slotHtml}${mxTile({ ...L.lead, owned: false }, 'f')}</div>
+        <h3>For slot ${mix.at + 2} <span class="note">(units that match, yours first)</span></h3>
+        <div class="mx-cands">${cands.slice(0, 6).map(u => `<div class="mx-cand"><span class="bar ${typeCls(u.type)}"></span><span class="nm" title="${esc(u.title)} - ${esc(u.name)}">${esc(u.name)}<span class="s">${clsTxt(u)} · ${u.owned ? '<span class="y">✓ yours</span>' : 'not in box'} · ${u.boost >= 0 ? `+${u.boost}%` : '<span class="w">⚠ not boosted by this leader</span>'}</span></span>
+          <button class="btn ghost" data-mput="${esc(u.id)}">Put in</button></div>`).join('') || '<p class="note">Every matching unit shown is in.</p>'}</div>
+        <div class="mx-foot"><button class="btn ghost" data-mfill>Fill the rest for me</button><button class="btn" data-mbuild>Build team ▶</button></div>`;
+      body = line + `<div class="mx-twocol"><div>${left}</div><div>${right}</div></div>`;
+    }
+  }
+  $('#mix').innerHTML = `<h3>Mix &amp; match</h3>${chips}${body}`;
+}
+let mixSeq = 0;
+async function loadBoard() {
+  const seq = ++mixSeq;
+  if (!mix.sel.length) { mix.board = null; mix.busy = false; mix.err = ''; return renderMix(); }
+  mix.busy = true; mix.err = ''; renderMix();
+  try {
+    const b = await api('/api/catboard?mode=' + mix.mode + mix.sel.map(c => '&c=' + encodeURIComponent(c)).join('')
+      + (excluded.length ? '&exclude=' + excluded.map(x => x.id).join(',') : ''));
+    if (seq !== mixSeq) return;   // a newer choice replaced this one
+    mix.board = b; mix.lead = 0; mix.slots = null;
+  } catch (e) { if (seq === mixSeq) { mix.board = null; mix.err = e.message; } }
+  finally { if (seq === mixSeq) { mix.busy = false; renderMix(); } }
+}
+function buildFromMix() {
+  const L = mxLeader(); if (!L) return;
+  if (!prevPicks) prevPicks = picks.map(slimUnit);   // your own picks, kept once for "Back to your picks"
+  picks = [L.lead, ...mix.slots.filter(Boolean)].map(slimUnit).slice(0, MAX);
+  keepLeader = { id: String(L.lead.id), name: L.lead.name };
+  keepFriend = { id: String(L.lead.id), name: L.lead.name };
+  scrollToTeam = true;
+  savePicks(); saveRepl(); renderRepl(); renderResults(); renderTray(); runBuild();
+}
+$('#mix').addEventListener('click', e => {
+  if (!(e.target instanceof Element)) return;
+  const t = e.target.closest('button, label, [data-mslot]'); if (!t) return;
+  if (t.tagName === 'LABEL') e.preventDefault();   // one click, not a second one from the radio inside
+  const d = t.dataset;
+  if ('mopen' in d) return openCatPopup();
+  if ('mdel' in d) { mix.sel = mix.sel.filter(c => c !== d.mdel); saveMix(); return loadBoard(); }
+  if ('mflip' in d) { mix.mode = mix.mode === 'and' ? 'or' : 'and'; saveMix(); return loadBoard(); }
+  const L = mxLeader(); if (!L || !mix.slots) return;
+  if ('mlead' in d) { mix.lead = Number(d.mlead); mix.slots = null; }
+  else if ('mslot' in d) mix.at = Number(d.mslot);
+  else if ('mput' in d) mix.slots[mix.at] = L.cands.find(u => u.id === d.mput) || null;
+  else if ('mfill' in d) {
+    for (let k = 0; k < 5; k++) if (!mix.slots[k]) {
+      const used = new Set([L.lead.name, ...mix.slots.filter(Boolean).map(u => u.name)]);
+      mix.slots[k] = mxFillOrder(L).find(u => !used.has(u.name)) || null;
+    }
+  } else if ('mbuild' in d) return buildFromMix();
+  else return;
+  if ('mput' in d || 'mfill' in d) { const nx = mix.slots.findIndex(x => !x); if (nx >= 0) mix.at = nx; }
+  renderMix();
+});
+// ----- the category popup -----
+async function ensureMembers(names) {
+  const need = names.filter(n => !catMembers.has(n));
+  if (!need.length) return;
+  try { const r = await api('/api/catmembers?' + need.map(n => 'c=' + encodeURIComponent(n)).join('&')); for (const [k, v] of Object.entries(r)) catMembers.set(k, v); } catch {}
+}
+function popCount() {
+  const sel = [...pop.draft];
+  if (!sel.length) return null;
+  const lists = sel.map(n => catMembers.get(n));
+  if (lists.some(l => !l)) return { counting: true };
+  let res;
+  if (pop.mode === 'and') { const rest = lists.slice(1).map(a => new Set(a)); res = lists[0].filter(id => rest.every(s => s.has(id))); }
+  else res = [...new Set(lists.flat())];
+  res = res.filter(id => !/^4\d{6}$/.test(id));   // like the board: exchanged forms aren't cards of their own
+  const own = new Set(box.map(u => String(u.id)));
+  return { n: res.length, yours: res.filter(id => own.has(id)).length };
+}
+function closePop() { pop = null; document.querySelector('.cp-pop')?.remove(); document.body.classList.remove('noscroll'); }
+async function openCatPopup() {
+  pop = { draft: new Set(mix.sel), mode: mix.mode, q: '', err: '' };
+  document.body.classList.add('noscroll');
+  renderPop();
+  try { catIndex = (await api('/api/categories')).cats; }   // each time: card counts fill in as category pages get cached
+  catch (e) { if (pop) pop.err = e.message; }
+  if (!pop) return;
+  renderPop();
+  await ensureMembers([...pop.draft]);
+  renderPop();
+}
+function renderPop() {
+  if (!pop) return;
+  let el = document.querySelector('.cp-pop');
+  if (!el) { el = document.createElement('div'); el.className = 'cp-pop'; document.body.appendChild(el); wirePop(el); }
+  const keep = el.querySelector('.cp-list')?.scrollTop || 0;
+  const q = pop.q.trim().toLowerCase(), show = c => !q || c.name.toLowerCase().includes(q);
+  const btn = c => `<button class="cp-cat${pop.draft.has(c.name) ? ' on' : ''}" data-cat="${esc(c.name)}"><b>${esc(c.name)}</b><span>${c.cards != null ? c.cards + ' cards' : 'counting cards…'}${c.yours ? ` · <i>${c.yours} yours</i>` : ''}</span></button>`;
+  const list = catIndex || [];
+  const mine = list.filter(c => c.yours && show(c)).sort((a, b) => b.yours - a.yours || a.name.localeCompare(b.name));
+  const rest = list.filter(c => !c.yours && show(c));
+  const m = popCount(), n = pop.draft.size;
+  const res = !n ? 'Tick one or more categories' : m.counting ? 'counting…'
+    : m.n ? `<b>${m.n}</b> units match · <span class="y">${m.yours} yours</span>` : '<span class="z">No unit is in all of these</span>';
+  const listHtml = !catIndex ? (pop.err ? `<p class="note">Couldn’t load the categories: ${esc(pop.err)}</p>` : '<p class="note loading">Loading the categories…</p>')
+    : (mine.length ? `<h4>Your units are in</h4><div class="cp-grid">${mine.map(btn).join('')}</div>` : '')
+      + (rest.length ? `<h4>All categories</h4><div class="cp-grid">${rest.map(btn).join('')}</div>` : '')
+      + (!mine.length && !rest.length ? '<p class="note">No category has that name.</p>' : '');
+  el.innerHTML = `<div class="cp-sheet" role="dialog" aria-label="Categories">
+    <div class="hd"><b>Categories</b><button class="x" data-pclose aria-label="Close">✕</button></div>
+    <div class="mid">
+      <div class="cp-modes"><button data-pmode="or" class="${pop.mode === 'or' ? 'on' : ''}"><b>Any of them</b>OR</button><button data-pmode="and" class="${pop.mode === 'and' ? 'on' : ''}"><b>All of them</b>AND</button></div>
+      <p class="cp-modetxt">${pop.mode === 'or' ? 'A unit counts if it’s in <b>at least one</b> ticked category.' : 'A unit counts only if it’s in <b>every</b> ticked category.'}</p>
+      <input type="text" class="cp-q" placeholder="Find a category…" value="${esc(pop.q)}">
+    </div>
+    <div class="cp-list">${listHtml}</div>
+    <div class="ft"><span class="res">${n ? `${n} ticked · ` : ''}${res}</span>
+      <span class="acts"><button class="btn ghost" data-preset>Reset</button><button class="btn" data-pok ${n && (m.counting || m.n) ? '' : 'disabled'}>OK</button></span></div>
+  </div>`;
+  el.querySelector('.cp-list').scrollTop = keep;
+}
+function wirePop(el) {
+  el.addEventListener('click', async e => {
+    if (e.target === el) return closePop();   // a click outside the sheet
+    if (!(e.target instanceof Element)) return;
+    const t = e.target.closest('button'); if (!t || !pop) return;
+    const d = t.dataset;
+    if ('pclose' in d) return closePop();
+    if (d.pmode) pop.mode = d.pmode === 'or' ? 'or' : 'and';
+    else if (d.cat) {
+      if (pop.draft.has(d.cat)) pop.draft.delete(d.cat); else if (pop.draft.size < 8) pop.draft.add(d.cat);
+      renderPop();
+      await ensureMembers([...(pop?.draft || [])]);
+    }
+    else if ('preset' in d) pop.draft = new Set();
+    else if ('pok' in d) { mix.sel = [...pop.draft]; mix.mode = pop.mode; saveMix(); closePop(); return loadBoard(); }
+    renderPop();
+  });
+  el.addEventListener('input', e => {
+    if (!pop || !e.target.classList?.contains('cp-q')) return;
+    pop.q = e.target.value;
+    const pos = e.target.selectionStart;
+    renderPop();
+    const s = el.querySelector('.cp-q'); s.focus(); s.setSelectionRange(pos, pos);
+  });
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && pop) closePop(); });
+
 // Event picker (remembered per browser). The old "Festival" checkbox setting carries over.
 try {
   const saved = localStorage.getItem('dk-event');
@@ -1169,6 +1425,8 @@ $('#event').onchange = () => {
 };
 renderTray();
 renderRepl();
+renderMix();
+if (mix.sel.length) loadBoard();
 api('/api/box').then(b => { box = b; renderBox(); });
 </script>
 </body>

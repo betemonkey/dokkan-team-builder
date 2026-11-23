@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mockups: teams per category</title>
+<style>
+  :root { --bg:#111317; --card:#1b1e24; --card2:#22262e; --line:#2c3038; --text:#e8e8ea; --dim:#9aa0aa; --accent:#f0a030; --ok:#4cc38a;
+          --lead:#e3b23c; --friend:#8e6be8; --okb:#5fd38a; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font:15px/1.45 system-ui, sans-serif; }
+  main { max-width:1240px; margin:0 auto; padding:16px; }
+  h1 { font-size:22px; margin:4px 0 6px; } h1 span { color:var(--accent); }
+  .note { color:var(--dim); font-size:13px; }
+  .opt { border:1px dashed #444; border-radius:14px; padding:14px; margin:22px 0 40px; }
+  .opt > h2 { margin:0 0 4px; font-size:18px; color:var(--accent); }
+  .opt > p.why { margin:0 0 6px; color:var(--dim); font-size:13px; }
+  .opt > p.cost { margin:0 0 14px; font-size:12.5px; } .opt > p.cost b { color:var(--text); }
+  .screens { display:flex; gap:18px; flex-wrap:wrap; align-items:flex-start; }
+  .screen { position:relative; border:1px solid #3a3f49; border-radius:14px; background:var(--bg); padding:26px 12px 12px; min-width:0; }
+  .screen .cap { position:absolute; top:6px; left:12px; font-size:10px; color:var(--dim); letter-spacing:.08em; text-transform:uppercase; }
+  .phone { width:412px; max-width:100%; } .pc { width:780px; max-width:100%; }
+  .rec { display:inline-block; font-size:11px; font-weight:800; background:var(--ok); color:#111; border-radius:6px; padding:1px 7px; margin-left:6px; vertical-align:middle; }
+  /* the app's own pieces (public/index.html) */
+  .tabs { display:flex; gap:4px; margin:0 0 10px; flex-wrap:wrap; }
+  .tabs b { font-weight:600; font-size:13px; padding:6px 12px; border-radius:9px; border:1px solid var(--line); color:var(--dim); }
+  .tabs b.on { background:var(--accent); border-color:var(--accent); color:#111; }
+  .tabs b.new { position:relative; } .tabs b.new::after { content:'new'; position:absolute; top:-7px; right:-6px; font-size:9px; font-weight:800; background:var(--ok); color:#111; border-radius:5px; padding:0 4px; }
+  .inp { width:100%; border:1px solid var(--line); background:var(--card); color:var(--dim); border-radius:9px; padding:8px 10px; font-size:13px; margin:0 0 10px; }
+  h3 { font-size:14px; margin:4px 0 6px; } h3 .note { font-weight:400; font-size:12px; }
+  button { font:inherit; cursor:pointer; }
+  .btn { border:0; border-radius:9px; background:var(--accent); color:#111; font-weight:700; font-size:12.5px; padding:6px 12px; white-space:nowrap; }
+  .btn.ghost { background:transparent; color:var(--text); border:1px solid var(--line); font-weight:600; }
+  .traybar { display:flex; gap:8px; align-items:center; justify-content:space-between; flex-wrap:wrap; border-top:1px solid var(--line); margin-top:12px; padding-top:10px; font-size:12.5px; color:var(--dim); }
+  .traybar b { color:var(--text); }
+  /* category chips */
+  .chips { display:flex; flex-wrap:wrap; gap:6px; margin:0 0 10px; }
+  .cchip { border:1px solid var(--line); background:transparent; color:var(--text); border-radius:999px; padding:4px 10px; font-size:12px; }
+  .cchip i { font-style:normal; color:var(--dim); margin-left:4px; }
+  .cchip.on { background:var(--accent); border-color:var(--accent); color:#111; font-weight:700; } .cchip.on i { color:#111; }
+  .cchip.more { border-style:dashed; color:var(--dim); }
+  /* a unit tile: type band on top (class + type), short name, ✓ = in your box */
+  .team { display:grid; gap:6px; }
+  .phone .team { grid-template-columns:repeat(4, minmax(0, 1fr)); } .pc .team { grid-template-columns:repeat(7, minmax(0, 1fr)); }
+  .u { position:relative; min-width:0; background:var(--card2); border:1px solid var(--line); border-radius:9px; overflow:hidden; padding-bottom:4px; }
+  .u .ty { display:block; font-size:9px; font-weight:800; letter-spacing:.04em; color:#fff; padding:2px 5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .u .nm { font-size:11px; line-height:1.25; padding:3px 5px 0; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; min-height:31px; overflow-wrap:anywhere; }
+  .u .yo { display:block; font-size:10px; padding:1px 5px 0; color:var(--okb); font-weight:700; min-height:15px; }
+  .u .yo.no { color:var(--dim); font-weight:400; }
+  .u .rl { position:absolute; top:2px; right:3px; font-size:9px; line-height:12px; font-weight:800; padding:0 4px; border-radius:4px; }
+  .u .rl ~ .nm { padding-top:3px; } .u:has(.rl) .ty { padding-right:20px; }
+  .u .rl.l { background:var(--lead); color:#111; } .u .rl.f { background:var(--friend); color:#fff; }
+  .t-AGL { background:#2f6fd6; } .t-TEQ { background:#22995a; } .t-INT { background:#8a4fd2; } .t-STR { background:#d4443a; } .t-PHY { background:#d9861d; }
+  .u .add { position:absolute; right:4px; bottom:4px; width:22px; height:22px; border-radius:50%; border:1px solid var(--line); background:var(--card); color:var(--text); font-size:13px; line-height:1; padding:0; }
+  .u .add.in { background:var(--ok); border-color:var(--ok); color:#111; font-weight:800; }
+  .u.sel { outline:2px solid var(--ok); outline-offset:-1px; }
+  /* a team card */
+  .tc { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:10px; margin:0 0 10px; min-width:0; }
+  .tc .hd { display:flex; justify-content:space-between; align-items:baseline; gap:8px; flex-wrap:wrap; }
+  .tc .hd h4 { margin:0; font-size:14px; } .tc .hd .mine { font-size:12px; color:var(--okb); font-weight:700; }
+  .tc .ld { font-size:12px; color:var(--dim); margin:2px 0 8px; } .tc .ld b { color:var(--text); }
+  .tc .ft { display:flex; gap:8px; align-items:center; justify-content:space-between; flex-wrap:wrap; margin-top:8px; font-size:12px; color:var(--dim); }
+  .flip { display:inline-flex; align-items:center; gap:6px; } .flip button { border:1px solid var(--line); background:transparent; color:var(--text); border-radius:7px; padding:1px 8px; }
+  .flip button:disabled { opacity:.35; cursor:default; }
+  .cards { display:grid; gap:10px; } .pc .cards { grid-template-columns:repeat(2, minmax(0, 1fr)); } .cards .tc { margin:0; }
+  .pc .cards .team { grid-template-columns:repeat(4, minmax(0, 1fr)); }
+  .seg { display:flex; flex-wrap:wrap; width:max-content; max-width:100%; border:1px solid var(--line); border-radius:9px; overflow:hidden; margin:0 0 10px; }
+  .seg button { border:0; background:transparent; color:var(--dim); font-size:12px; padding:5px 10px; }
+  .seg button.on { background:var(--accent); color:#111; font-weight:700; }
+  .morelist { display:flex; flex-direction:column; gap:6px; margin-top:10px; }
+  .morelist div { display:flex; justify-content:space-between; gap:8px; background:var(--card); border:1px solid var(--line); border-radius:10px; padding:7px 10px; font-size:12.5px; }
+  .morelist div span:last-child { color:var(--accent); white-space:nowrap; }
+  /* C: the board */
+  .slots { display:grid; gap:6px; margin:0 0 10px; } .phone .slots { grid-template-columns:repeat(4, minmax(0, 1fr)); } .pc .slots { grid-template-columns:repeat(7, minmax(0, 1fr)); }
+  .empty { border:1px dashed #4a505c; border-radius:9px; display:grid; place-items:center; min-height:72px; color:var(--dim); font-size:11px; background:transparent; }
+  .empty.on { border:2px solid var(--accent); color:var(--accent); }
+  .leaders { display:flex; flex-direction:column; gap:5px; margin:0 0 10px; }
+  .leaders label { display:flex; gap:8px; align-items:flex-start; background:var(--card); border:1px solid var(--line); border-radius:10px; padding:6px 8px; font-size:12px; cursor:pointer; }
+  .leaders label.on { border-color:var(--accent); } .leaders label b { color:var(--text); } .leaders label span { color:var(--dim); }
+  .cands { display:flex; flex-direction:column; gap:5px; }
+  .cand { display:grid; grid-template-columns:8px minmax(0, 1fr) auto; gap:8px; align-items:center; background:var(--card); border:1px solid var(--line); border-radius:10px; padding:6px 8px; font-size:12.5px; }
+  .cand .bar { width:8px; height:30px; border-radius:4px; } .cand .nm { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .cand .s { display:block; color:var(--dim); font-size:11px; }
+  .twocol { display:grid; gap:12px; } .pc .twocol { grid-template-columns:minmax(0, 1fr) minmax(0, 1fr); }
+</style>
+</head>
+<body><main>
+<h1>Mockups: <span>teams per category</span></h1>
+<p class="note">Real suggestions from the app's team engine, built around your box (Third Eye Gomah, Broly (Wrathful), LSSJ Broly,
+  SSJ3 Goku). Each team's leader boosts that category. ✓ = in your box. The friend is borrowed, so it never has to be yours.
+  Colours are the unit's type; “EXT” = Extreme, “SUP” = Super.</p>
+
+<section class="opt">
+  <h2>A · A category picker in the Build tab</h2>
+  <p class="why">Smallest change. Under the search: pick a category and its best team shows right there, with 3 to flip through.
+    Mix by swapping any unit with the Replace list you already have. One category at a time. Try the chips and ‹ ›.</p>
+  <p class="cost note">To build: <b>small</b>, today's builder with a "leader must boost this category" rule.</p>
+  <div class="screens">
+    <div class="screen phone" data-opt="A"><span class="cap">Fold cover · 412 px</span></div>
+    <div class="screen pc" data-opt="A"><span class="cap">Tablet / PC</span></div>
+  </div>
+</section>
+
+<section class="opt">
+  <h2>B · A Categories tab with ready teams <span class="rec">RECOMMENDED</span></h2>
+  <p class="why">A ready team for each category, the ones that use most of your box first. Use a whole team in one tap, or mix:
+    tap ＋ on units from different categories to put them in your tray, then Build team fills the rest. Try the ＋ buttons.</p>
+  <p class="cost note">To build: <b>medium</b>, a new tab; each category's team is worked out the first time you open it (a few
+    seconds), then saved.</p>
+  <div class="screens">
+    <div class="screen phone" data-opt="B"><span class="cap">Fold cover · 412 px</span></div>
+    <div class="screen pc" data-opt="B"><span class="cap">Tablet / PC</span></div>
+  </div>
+</section>
+
+<section class="opt">
+  <h2>C · A mix &amp; match board</h2>
+  <p class="why">Most control: pick the category, the leader, then fill each slot yourself from a list of units the leader
+    boosts, or let it fill the rest. More taps, especially on the phone. Try an empty slot, then “Put in”.</p>
+  <p class="cost note">To build: <b>large</b>, a new screen with its own controls.</p>
+  <div class="screens">
+    <div class="screen phone" data-opt="C"><span class="cap">Fold cover · 412 px</span></div>
+    <div class="screen pc" data-opt="C"><span class="cap">Tablet / PC</span></div>
+  </div>
+</section>
+</main>
+<script>
+// Teams from the app's engine (lib/team.js build()), seeded with your box units of each category; only teams whose leader
+// skill names the category are kept. n = name, c = class, t = type, y = in your box.
+const DATA = {"Pure Saiyans":[{"lead":{"n":"Majin Vegeta + SSJ2 Goku (Angel)","c":"Extreme","t":"PHY","y":false},"cats":["Pure Saiyans","Corroded Body and Mind","Gifted Warriors"],"pct":170,"add":50,"subs":[{"n":"Broly (Wrathful)","c":"Extreme","t":"TEQ","y":true},{"n":"LSSJ Broly","c":"Extreme","t":"INT","y":true},{"n":"SSJ3 Goku","c":"Super","t":"INT","y":true},{"n":"SSJ Broly","c":"Extreme","t":"TEQ","y":false},{"n":"Broly","c":"Extreme","t":"TEQ","y":false}],"friend":{"n":"Majin Vegeta + SSJ2 Goku (Angel)","c":"Extreme","t":"PHY"}},{"lead":{"n":"SSJ Vegeta (Angel) + SSJ Goku (Angel)","c":"Super","t":"AGL","y":false},"cats":["Successors","Fused Fighters","Pure Saiyans"],"pct":170,"add":50,"subs":[{"n":"Broly (Wrathful)","c":"Extreme","t":"TEQ","y":true},{"n":"LSSJ Broly","c":"Extreme","t":"INT","y":true},{"n":"SSJ3 Goku","c":"Super","t":"INT","y":true},{"n":"Majin Vegeta + SSJ2 Goku (Angel)","c":"Extreme","t":"PHY","y":false},{"n":"Broly","c":"Extreme","t":"TEQ","y":false}],"friend":{"n":"Majin Vegeta + SSJ2 Goku (Angel)","c":"Extreme","t":"PHY"}},{"lead":{"n":"SSJ Goku + SSJ Vegeta (Angel)","c":"Super","t":"TEQ","y":false},"cats":["Earth-Protecting Heroes","Fused Fighters","Pure Saiyans"],"pct":170,"add":50,"subs":[{"n":"Broly (Wrathful)","c":"Extreme","t":"TEQ","y":true},{"n":"LSSJ Broly","c":"Extreme","t":"INT","y":true},{"n":"SSJ3 Goku","c":"Super","t":"INT","y":true},{"n":"Broly","c":"Extreme","t":"TEQ","y":false},{"n":"SSJ Broly","c":"Extreme","t":"TEQ","y":false}],"friend":{"n":"Majin Vegeta + SSJ2 Goku (Angel)","c":"Extreme","t":"PHY"}}],"Movie Bosses":[{"lead":{"n":"Golden Frieza + Gogeta","c":"Extreme","t":"TEQ","y":false},"cats":["Movie Bosses","Movie Heroes"],"pct":170,"add":50,"subs":[{"n":"Broly (Wrathful)","c":"Extreme","t":"TEQ","y":true},{"n":"LSSJ Broly","c":"Extreme","t":"INT","y":true},{"n":"SSJ Broly","c":"Extreme","t":"AGL","y":false},{"n":"Broly","c":"Extreme","t":"TEQ","y":false},{"n":"SSJ Vegeta (Angel) + SSJ Goku (Angel)","c":"Super","t":"AGL","y":false}],"friend":{"n":"Golden Frieza + Gogeta","c":"Extreme","t":"TEQ"}}],"Full Power":[{"lead":{"n":"SSJ2 Gohan (Youth)","c":"Super","t":"PHY","y":false},"cats":["Full Power"],"pct":220,"add":0,"subs":[{"n":"Third Eye Gomah","c":"Extreme","t":"AGL","y":true},{"n":"LSSJ Broly","c":"Extreme","t":"INT","y":true},{"n":"SSJ4 Goku","c":"Super","t":"INT","y":false},{"n":"SSJ4 Goku (DAIMA)","c":"Super","t":"STR","y":false},{"n":"Broly","c":"Extreme","t":"TEQ","y":false}],"friend":{"n":"SSJ2 Gohan (Youth)","c":"Super","t":"PHY"}},{"lead":{"n":"SSJ4 Goku","c":"Super","t":"INT","y":false},"cats":["GT Heroes","Full Power"],"pct":170,"add":30,"subs":[{"n":"Third Eye Gomah","c":"Extreme","t":"AGL","y":true},{"n":"LSSJ Broly","c":"Extreme","t":"INT","y":true},{"n":"SSJ2 Gohan (Youth)","c":"Super","t":"PHY","y":false},{"n":"SSJ4 Goku (DAIMA)","c":"Super","t":"STR","y":false},{"n":"Broly","c":"Extreme","t":"TEQ","y":false}],"friend":{"n":"SSJ2 Gohan (Youth)","c":"Super","t":"PHY"}},{"lead":{"n":"SSJ Broly","c":"Extreme","t":"AGL","y":false},"cats":["Super Bosses","Transformation Boost","Full Power"],"pct":170,"add":30,"subs":[{"n":"Third Eye Gomah","c":"Extreme","t":"AGL","y":true},{"n":"LSSJ Broly","c":"Extreme","t":"INT","y":true},{"n":"SSJ2 Gohan (Youth)","c":"Super","t":"PHY","y":false},{"n":"Broly","c":"Extreme","t":"TEQ","y":false},{"n":"SSJ Goku","c":"Super","t":"TEQ","y":false}],"friend":{"n":"SSJ2 Gohan (Youth)","c":"Super","t":"PHY"}}]};
+// Your other categories, not worked out in this mockup: [name, your units in it, cards in it]
+const MORE = [['Final Trump Card', 2, '53 LR · 174 UR'], ['Exploding Rage', 2, '26 LR · 121 UR'], ['Battle of Fate', 2, '60 LR · 259 UR'],
+  ['Uncontrollable Power', 2, '25 LR · 190 UR'], ['Power Beyond Super Saiyan', 2, '43 LR · 316 UR'], ['Golden Fighters', 2, '55 LR · 427 UR']];
+const CATS = Object.keys(DATA);
+const yours = { 'Pure Saiyans': 3, 'Full Power': 2, 'Movie Bosses': 2 };
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const cls = c => c === 'Extreme' ? 'EXT' : 'SUP';
+const tile = (u, role, extra = '') => `<div class="u${extra}"><span class="ty t-${u.t}">${cls(u.c)} ${u.t}</span>${role ? `<span class="rl ${role}">${role.toUpperCase()}</span>` : ''}
+  <span class="nm">${esc(u.n)}</span><span class="yo${u.y ? '' : ' no'}">${role === 'f' ? 'borrowed' : u.y ? '✓ yours' : 'not in box'}</span></div>`;
+const leadLine = t => `Leader <b>${esc(t.lead.n)}</b>: boosts ${t.cats.map(c => `“${esc(c)}”`).join(' or ')} +${t.pct}%${t.add ? ` (+${t.add}% more for some)` : ''}`;
+const mineOf = t => [t.lead, ...t.subs].filter(u => u.y).length;
+const teamTiles = (t, plus) => `<div class="team">${[[t.lead, 'l'], ...t.subs.map(u => [u, '']), [t.friend, 'f']]
+  .map(([u, r]) => plus ? plus(u, r) : tile(u, r)).join('')}</div>`;
+
+const build = {
+  // A: chips under the search, one team card with ‹ ›
+  A(el, st) {
+    const cat = st.cat || CATS[0], teams = DATA[cat], i = Math.min(st.i || 0, teams.length - 1), t = teams[i];
+    return `<div class="tabs"><b class="on">Build a team</b><b>My box (4)</b></div>
+      <div class="inp">Search units and tap the ones you want in your team…</div>
+      <h3>…or start from a category <span class="note">(most of your units first)</span></h3>
+      <div class="chips">${CATS.map(c => `<button class="cchip${c === cat ? ' on' : ''}" data-cat="${esc(c)}">${esc(c)}<i>${yours[c]} yours</i></button>`).join('')}
+        ${MORE.slice(0, 2).map(([c, n]) => `<button class="cchip">${esc(c)}<i>${n} yours</i></button>`).join('')}<button class="cchip more">All categories ›</button></div>
+      <div class="tc"><div class="hd"><h4>Best ${esc(cat)} team</h4><span class="mine">${mineOf(t)} of 6 yours</span></div>
+        <div class="ld">${leadLine(t)}</div>${teamTiles(t)}
+        <div class="ft"><span class="flip"><button data-i="-1" ${i ? '' : 'disabled'}>‹</button>team ${i + 1} of ${teams.length}<button data-i="1" ${i < teams.length - 1 ? '' : 'disabled'}>›</button></span>
+          <button class="btn">Use this team</button></div>
+        <p class="note" style="margin:6px 0 0;font-size:11.5px">Tap any unit to swap it (the same Replace list as today).</p></div>
+      <div class="traybar"><span><b>0</b> picked · Event: None</span><button class="btn">Build team ▶</button></div>`;
+  },
+  // B: a Categories tab, one card per category, ＋ puts a unit in the tray (mix across categories)
+  B(el, st) {
+    st.tray = st.tray || new Map();
+    const card = cat => {
+      const teams = DATA[cat], i = Math.min((st.idx || {})[cat] || 0, teams.length - 1), t = teams[i];
+      const plus = (u, r) => r === 'f' ? tile(u, r) : (() => {
+        const key = u.n, on = st.tray.has(key);
+        return tile(u, r, on ? ' sel' : '').replace(/<\/div>$/, `<button class="add${on ? ' in' : ''}" data-add="${esc(key)}" data-from="${esc(cat)}" title="${on ? 'Take it out of your tray' : 'Put it in your tray'}">${on ? '✓' : '＋'}</button></div>`);
+      })();
+      return `<div class="tc"><div class="hd"><h4>${esc(cat)}</h4><span class="mine">${mineOf(t)} of 6 yours</span></div>
+        <div class="ld">${leadLine(t)}</div>${teamTiles(t, plus)}
+        <div class="ft"><span class="flip"><button data-cat="${esc(cat)}" data-i="-1" ${i ? '' : 'disabled'}>‹</button>${i + 1} of ${teams.length}<button data-cat="${esc(cat)}" data-i="1" ${i < teams.length - 1 ? '' : 'disabled'}>›</button></span>
+          <button class="btn">Use this team</button></div></div>`;
+    };
+    const froms = new Set(st.tray.values());
+    return `<div class="tabs"><b>Build a team</b><b class="on new">Categories</b><b>My box (4)</b></div>
+      <p class="note" style="margin:0 0 8px">A ready team for each category, the ones that use most of your box first.</p>
+      <div class="inp">Find a category…</div>
+      <div class="seg"><button class="on">Most of my box</button><button>A–Z</button></div>
+      <div class="cards">${CATS.map(card).join('')}</div>
+      <div class="morelist">${MORE.slice(0, 4).map(([c, n, sz]) => `<div><span>${esc(c)} <span class="note">· ${n} of your units · ${sz}</span></span><span>Show team ›</span></div>`).join('')}</div>
+      <div class="traybar"><span><b>${st.tray.size}</b> picked${st.tray.size ? ` · from ${froms.size} categor${froms.size === 1 ? 'y' : 'ies'}` : ' · tap ＋ to mix'}</span><button class="btn" ${st.tray.size ? '' : 'style="opacity:.5"'}>Build team ▶</button></div>`;
+  },
+  // C: choose the leader, then fill each slot from units it boosts
+  C(el, st) {
+    const teams = DATA['Pure Saiyans'];
+    st.lead = st.lead ?? 0;
+    const t = teams[st.lead];
+    st.slots = st.slots || [t.subs[0], t.subs[1], t.subs[2], null, null];
+    st.at = st.at ?? 3;
+    const used = new Set([t.lead.n, ...st.slots.filter(Boolean).map(u => u.n)]);
+    const pool = [];
+    for (const tm of teams) for (const u of [...tm.subs, tm.lead]) if (!pool.some(p => p.n === u.n)) pool.push(u);
+    const cands = pool.filter(u => !used.has(u.n)).sort((a, b) => b.y - a.y);
+    const slotHtml = st.slots.map((u, k) => u ? tile(u, '').replace('<div class="u', `<div data-slot="${k}" class="u${k === st.at ? ' sel' : ''}`)
+      : `<button class="empty${k === st.at ? ' on' : ''}" data-slot="${k}">＋ slot ${k + 2}</button>`).join('');
+    const left = `<h3>Leader <span class="note">(boosts Pure Saiyans)</span></h3>
+      <div class="leaders">${teams.map((x, k) => `<label class="${k === st.lead ? 'on' : ''}" data-lead="${k}"><input type="radio" ${k === st.lead ? 'checked' : ''}>
+        <span><b>${esc(x.lead.n)}</b><br>${x.cats.map(c => `“${esc(c)}”`).join(' or ')} +${x.pct}%${x.add ? ` (+${x.add}% more for some)` : ''}</span></label>`).join('')}</div>`;
+    const right = `<h3>Your team</h3>
+      <div class="slots">${tile(t.lead, 'l')}${slotHtml}${tile(t.friend, 'f')}</div>
+      <h3>For slot ${st.at + 2} <span class="note">(the leader boosts all of these)</span></h3>
+      <div class="seg"><button class="on">All</button><button>My box</button><button>Stackers</button></div>
+      <div class="cands">${cands.slice(0, 5).map(u => `<div class="cand"><span class="bar t-${u.t}"></span><span class="nm">${esc(u.n)}<span class="s">${cls(u.c)} ${u.t} · ${u.y ? '✓ yours' : 'not in box'}</span></span>
+        <button class="btn ghost" data-put="${esc(u.n)}">Put in</button></div>`).join('') || '<p class="note">Every slot is full.</p>'}</div>
+      <div class="traybar"><button class="btn ghost" data-fill="1">Fill the rest for me</button><button class="btn">Build team ▶</button></div>`;
+    return `<div class="tabs"><b class="on">Build a team</b><b>My box (4)</b></div>
+      <h3>Mix &amp; match</h3>
+      <div class="chips"><button class="cchip on">Pure Saiyans ✕</button><button class="cchip more">＋ Add a category</button></div>
+      <div class="twocol"><div>${left}</div><div>${right}</div></div>`;
+  },
+};
+
+for (const el of document.querySelectorAll('[data-opt]')) {
+  const cap = el.querySelector('.cap').outerHTML, st = {}, opt = el.dataset.opt;
+  const render = () => { el.innerHTML = cap + build[opt](el, st); };
+  el.addEventListener('click', e => {
+    const b = e.target.closest('button, label, [data-slot]'); if (!b) return;
+    if (opt === 'A') {
+      if (b.dataset.cat && DATA[b.dataset.cat]) { st.cat = b.dataset.cat; st.i = 0; }
+      if (b.dataset.i) st.i = (st.i || 0) + Number(b.dataset.i);
+    } else if (opt === 'B') {
+      if (b.dataset.add) { if (st.tray.has(b.dataset.add)) st.tray.delete(b.dataset.add); else if (st.tray.size < 6) st.tray.set(b.dataset.add, b.dataset.from); }
+      if (b.dataset.i && b.dataset.cat) { st.idx = st.idx || {}; st.idx[b.dataset.cat] = (st.idx[b.dataset.cat] || 0) + Number(b.dataset.i); }
+    } else {
+      if (b.dataset.lead) { st.lead = Number(b.dataset.lead); st.slots = null; st.at = 3; }
+      if (b.dataset.slot) st.at = Number(b.dataset.slot);
+      const teams = DATA['Pure Saiyans'], pool = [];
+      for (const tm of teams) for (const u of [...tm.subs, tm.lead]) if (!pool.some(p => p.n === u.n)) pool.push(u);
+      if (b.dataset.put) { st.slots[st.at] = pool.find(u => u.n === b.dataset.put); const nx = st.slots.findIndex(x => !x); st.at = nx < 0 ? st.at : nx; }
+      if (b.dataset.fill) {
+        const t = teams[st.lead], usedN = new Set(st.slots.filter(Boolean).map(u => u.n));
+        const rest = [...t.subs, ...pool].filter((u, k, a) => !usedN.has(u.n) && u.n !== t.lead.n && a.findIndex(x => x.n === u.n) === k);
+        st.slots = st.slots.map(u => u || rest.shift() || null);
+      }
+    }
+    render();
+  });
+  render();
+}
+</script>
+</body>
+</html>
